@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&family=Noto+Sans+KR:wght@100..900&display=swap');
+
+:root {
+    --ifm-color-primary: #9f9283;
+    --ifm-color-primary-dark: #b0a89e;
+    --ifm-color-primary-darker: #7c756b;
+    --ifm-color-primary-darkest: #554f48;
+
+    --ifm-color-primary-light: #605a49;
+    --ifm-color-primary-lighter: #645e4c;
+    --ifm-color-primary-lightest: #716b56;
+
+    --ifm-color-text: #222222;
+    --ifm-color-text-highlight: #D8D1C6BC;
+
+    --ifm-code-font-size: 95%;
+    --docusaurus-highlighted-code-line-bg: rgb(0, 0,0, .1);
+}
+
+[data-theme='dark'] {
+    --ifm-color-primary: #9f9283;
+    --ifm-color-primary-dark: #beb19b;
+    --ifm-color-primary-darker: #b6a88f;
+    --ifm-color-primary-darkest: #a08d6c;
+
+    --ifm-color-primary-light: #dcd5c9;
+    --ifm-color-primary-lighter: #e4ded5;
+    --ifm-color-primary-lightest: #faf9f8;
+
+    --ifm-color-text: #f4ede5;
+    --ifm-color-text-highlight: #615B54BC;
+
+    --ifm-code-font-size: 95%;
+    --docusaurus-highlighted-code-line-bg: rgba(92, 83, 75, 0.1);
+}
+
+.hero__title {
+    font-family: "Arimo", sans-serif;
+    color: var(--ifm-color-text);
+}
+
+.hero__subtitle {
+}
+
+p {
+    font-family: "Arimo", sans-serif;
+}

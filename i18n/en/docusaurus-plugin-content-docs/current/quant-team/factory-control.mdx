@@ -1,0 +1,109 @@
+import Highlight from '@site/src/components/DocsDefault';
+
+# Factory Control
+
+Developers around the world mostly work in different local environments. The Quant team has established a few rules to minimize confusion when team members easily fetch their own sources or those of other developers, or register libraries in such environments.
+
+We call this method Factory Control. Simply put, it is a system designed so that <Highlight>you don't need to get confused about the location of the source you developed yourself or how to manage versions, without needing separate memos</Highlight>.
+
+When one developer's project needs to be accessed by another developer within the team, reusable resources or fully shareable directories are always set to the <Highlight>"public" directory located at the project root</Highlight>. Therefore, you just need to create a "public" directory in your project directory. Slight adjustments are possible depending on the language or framework, and this is not a strict rule. The Quant team prioritizes the freedom of team members.
+
+To utilize this "public" directory, set the `<project_name>_PUBLIC_DIR` environment variable. For example, if the project name is "Entanglement", set the `ENTANGLEMENT_PUBLIC_DIR` environment variable to the path of the corresponding "public" directory.
+
+## 자바 프로젝트에서
+
+자바 프로젝트는 크게 두 가지의 빌드 도구를 사용할 수 있습니다. 저희는 주로 그레이들(Gradle) 빌드 도구를 사용하지만 개발자 입맛에 따라 메이븐(Maven)을 사용할 수도 있습니다. 각각의 도구에 대해 중앙
+관리 방법을 알려드리겠습니다.
+
+:::info
+설명에는 멀티 모듈 프로젝트인 경우도 포함했으니 걱정 안 하셔도 됍니다!
+:::
+
+그 전에, 한 가지 공통적인 사실이 있습니다. 저희는 로컬 환경에서 빌드 파일에 사용되는 전역 변수(Global Variable)는 개별 프로젝트의 (루트) 빌드 파일이 아닌 시스템의 최고 상위 위치에서 설정하기로
+했습니다. 빌드 파일이 설치된 사용자 홈 디렉토리입니다. 맥(macOS) 운영 체제의 경우 (그리고 그레이들의 경우) `~/.gradle/gradle.properties` 경로가 될 수 있습니다.
+
+### 그레이들 프로젝트
+
+그레이들 사용자 홈 디렉토리에 `gradle.properties` 파일을 추가하고, 이 곳에서 전역 변수를 관리할 수 있습니다. 당신의 프로젝트를 메이븐 공개 저장소(Maven Central Repository)나
+퀀트 공동 저장소(Quant Shared)에 배포(게시)하고자 하는 경우, 필요한 유저 ID, 패스워드, 식별자 번호 등의 사항을 저장해 둘 수 있습니다. 다음과 같이요!
+
+```properties
+# ~/.gradle/gradle.properties
+# 메이븐 공개 저장소와 배포 설정
+mavenCentralUsername=mavenUsername
+mavenCentralPassword=mavenPassword
+SONATYPE_HOST=CENTRAL_PORTAL
+# ...
+# 배포에 필요한 서명 정보
+signing.keyId=pubKey
+signing.password=keyPassword
+signing.secretKeyRingFile=path/to/secretFile.gpg
+# 퀀트 설정
+quantPublicDir=/path/to/quant/public
+# 개별 프로젝트에서, 공통 그룹명 관리
+commonGroupId=space.qu4nt
+```
+
+이 전역 변수를 개별 프로젝트에서 호출해 다음과 같이 사용하세요(Kotlin DSL 기준).
+
+```kotlin
+// ...플러그인, 전체 프로젝트 및 변수 설정
+
+val quantPublicDir: String by project
+val commonGroupId: String by project
+
+group = commonGroupId
+version = "1.0.0"
+
+sourceSets {
+    main {
+        resources {
+            srcDirs += File("${quantPublicDir}/my-project")
+        }
+    }
+    test {
+        resources {
+            srcDirs += File("${quantPublicDir}/my-project-test")
+        }
+    }
+}
+
+// ... 이 외의 저장소, 의존성 설정
+```
+
+짠! 이렇게 되면 당신의 프로젝트는 효율적으로 공통 (테스트) 리소스를 참조하고, 그룹을 관리할 수 있습니다! 프로젝트를 배포하고자 하는 경우에도 용이합니다. 만약 당신의 프로젝트가 멀티 모듈 프로젝트라면, 하위
+모듈에 대해 `sourceSets` 설정을 수행하시면 됩니다.
+
+```kotlin
+// 루트 모듈 build.gradle.kts
+
+val quantPublicDir: String by project
+val commonGroupId: String by project
+
+allprojects {
+    group = commonGroupId
+    version = "1.0.0"
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    sourceSets {
+        main {
+            resources {
+                srcDirs += File("${quantPublicDir}/my-project")
+            }
+        }
+        test {
+            resources {
+                srcDirs += File("${quantPublicDir}/my-project-test")
+            }
+        }
+    }
+    // ... 하위 모듈 의존성 등 설정
+}
+```
+
+이렇게 하면 참조하고자 하는 리소스를 하위 모듈에서도 호출할 수 있습니다. 만약 이러한 프로젝트가 넘쳐난다고 해도 유연하게 대응이 가능하고, 편리한 유지 보수가 가능합니다.

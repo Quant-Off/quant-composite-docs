@@ -1,0 +1,8 @@
+{
+  "label": "Quantum Information",
+  "position": 3,
+  "link": {
+    "type": "doc",
+    "id": "quantum-information/index"
+  }
+}

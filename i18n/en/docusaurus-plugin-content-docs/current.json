@@ -1,0 +1,10 @@
+{
+  "version.label": {
+    "message": "Next",
+    "description": "현재 버전 라벨"
+  },
+  "sidebar.mySidebar.category.projects": {
+    "message": "Projects",
+    "description": "프로젝트 카테고리 라벨"
+  }
+}

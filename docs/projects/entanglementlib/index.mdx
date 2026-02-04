@@ -1,0 +1,32 @@
+import Highlight from '@site/src/components/DocsDefault';
+
+# 얽힘 라이브러리
+
+얽힘 라이브러리(EntanglementLib)는 퀀트의 고급 복합 라이브러리로, <Highlight>양자 컴퓨팅 시대의 위협에 대응하기 위한 양자-내성 암호화(Post-Quantum Cryptography, PQC) 알고리즘</Highlight>을 핵심으로 통합합니다. 이 라이브러리는 NIST의 FIPS 표준화된 알고리즘(ML-KEM, ML-DSA, SLH-DSA)을 기반으로 하며, 기존 고전 암호화 알고리즘(AES, RSA 등)을 포괄적으로 지원하여 하이브리드 보안 환경을 제공합니다. 주 목적은 개발자들이 안전하고 효율적인 암호화 도구를 쉽게 활용할 수 있도록 하는 데 있으며, Java 기반으로 설계되어 `BouncyCastle` 라이브러리와의 호환성을 강조합니다.
+
+## 주요 기능 및 지원 알고리즘
+
+- ML-KEM ([FIPS 203](https://csrc.nist.gov/pubs/fips/203/final)): 키 캡슐화 메커니즘으로, 양자 공격에 강한 키 교환을 지원합니다.
+    - `ML-KEM-512`, `ML-KEM-768`, `ML-KEM-1024` 등의 변형을 제공
+- ML-DSA ([FIPS 204](https://csrc.nist.gov/pubs/fips/204/final)): 디지털 서명 알고리즘으로, 격자 기반의 안전한 서명을 구현합니다.
+    - `ML-DSA-44`, `ML-DSA-65`, `ML-DSA-87` 등의 파라미터 세트를 지원
+- SLH-DSA ([FIPS 205](https://csrc.nist.gov/pubs/fips/205/final)): 해시 기반 서명으로, 상태 관리 없이 안전한 서명을 제공합니다.
+    - `SLH-DSA-SHAKE-128s`, `SLH-DSA-SHAKE-192f` 등의 변형을 제공
+
+이러한 PQC 알고리즘은 양자 컴퓨팅의 쇼어(Peter Shor) 알고리즘 등에 대한 내성을 보장하며, 라이브러리 내에서 하이브리드 모드를 통해 전환성을 높입니다.
+
+- **고전 암호화 알고리즘 지원**: AES (대칭키), RSA/ECDSA (비대칭키), SHA-3 (해싱) 등 전통적인 알고리즘을 모두 포함하여, 기존 시스템과의 호환성을 유지합니다. 이는 PQC로의 마이그레이션을 용이하게 합니다.
+- **다양한 타입 대응 유틸리티**: 문자열, 바이트 배열, 파일 스트림 등 다양한 데이터 타입에 최적화된 암호화/복호화, 서명/검증 함수를 제공합니다. 세부적인 메소드로 사용자 입맛에 따른 사용과 메모리 효율성을 고려한 구현이 가능하며, 보안 우선 원칙에 따라 `side-channel attack` 방지를 위한 <Highlight>상수 시간 연산을 적용</Highlight>합니다.
+
+## 포함된 보안 도구
+
+- **SSL/TLS 지원**: PQC 알고리즘을 적용한 SSL 핸드셰이크를 위한 유틸리티를 포함합니다.
+    - Java에 기본 탑재된 `SSLSocketFactory` 객체를 확장하여 양자-내성 키 교환을 구현하며, `TLSv1.3` 이상 프로토콜을 기본으로 지원
+- **Keystore 및 Truststore 관리**: `JKS`, `PKCS12` 등의 키스토어(keystore) 형식을 지원하며, PQC 키 페어 생성 및 저장 기능을 제공합니다.
+    - 트러스트스토어(truststore)를 통해 신뢰할 수 있는 인증서 체인을 관리하여, 중간자 공격(Man-in-the-Middle attack)을 방지
+- **기타 유틸리티**: 난수 생성기, 키 파생 함수(PBKDF2 with PQC enhancements), 인증서 관리 도구 등이 포함되어, 전체 보안 워크플로우를 커버합니다.
+
+얽힘 라이브러리는 보안과 메모리 안정성/효율성을 최우선으로 설계되었으며, 퀀트 팀의 양자정보과학 연구를 바탕으로 지속적으로 업데이트됩니다. 라이브러리 사용 시, `Java BouncyCastle jdk18on v1.82` 이상의 버전을 의존성으로 추천하며, 이는 NIST 표준을 거의 완벽히 지원합니다.
+
+## 사용법
+

@@ -1,0 +1,23 @@
+# 지원되는 PQC 알고리즘
+
+사용 가능한 PQC 알고리즘은 항상 몇 가지의 변형(또는 파라미터 세트)을 가집니다. 얽힘 라이브러리, 나아가 퀀트에서는 이를 배리언트$^{\textsf{varient}}$라고 부릅니다. 얽힘 라이브러리에 사용할 수 있는 PQC 알고리즘의 배리언트는 다음과 같습니다.
+
+*수학적 기능에 관해 서술하지 않으므로, 배리언트의 간단한 보안성 평가만 진행됩니다.*
+
+## ML-KEM
+
+NIST FIPS 203에서 모듈-격자 기반 키 캡슐화 메커니즘$^{\textsf{Module-Lattice Based Key Encapsulate Mechanism}}$, 즉 **ML-KEM**은 세 가지 배리언트로 정의되며, 각 변형은 보안 카테고리 (NIST 보안 카테고리 1, 3, 5)에 따라 다릅니다. 이는 고전적 보안 수준으로 `AES-128`(카테고리 1), `AES-192`(카테고리 3), `AES-256`(카테고리 5)과 유사합니다.
+
+### 보안 카테고리 1: ML-KEM-512
+
+양자 컴퓨터의 쇼어나 그로버$^{\textsf{Grover}}$ 알고리즘에 취약하지 않으며, MLWE의 격자 기반 난이도로 인해 양자 위협에 강합니다. 디캡슐화$^{\textsf{decapsulate}}$ 실패율은 $2^{-138.8}$으로 매우 낮아 IND-CCA2[$^{\textsf{Indistinguishability under Adaptive Chosen-Ciphertext Attack}}$](https://crypto.stackexchange.com/questions/99295/the-essential-differences-between-ind-cca1-and-ind-cca2#:~:text=IND%2DCCA2%20is%20INDistinguishability%20under%20adaptive%20Chosen%20Ciphertext%20Attack.) 보안(적응형 선택 암호문 공격 하에서의 비구별성)을 보장합니다.
+
+가장 빠르고 키 크기가 작아(공개키 `800`바이트, 비밀키 `1632`바이트, 암호문 `768`바이트) 표준 애플리케이션에 적합하나, 장기 보안이 필요한 경우 부족할 수 있습니다.
+
+<details>
+    <summary>ML-KEM-512 배리언트의 주요 파라미터 및 보안 근거</summary>
+
+    캡슐화 과정에서 생성되는 노이즈(polynomial noise)가 공격의 핵심 장벽으로 작용하며, 고전 공격에도 충분한 저항성을 보입니다. 그러나 이 **ML-KEM-512** 배리언트의 모듈러 다항식 개수 $k$는 2로, 값이 작아 미래의 고급 양자 컴퓨팅 발전에 취약할 수 있습니다.따라서 고보안 환경보다는 효율성을 우선하는 경우에 적합합니다.
+
+    FIPS 203에서 이 변형은 "기본 보안"으로 분류되며, 보안 마진이 상대적으로 좁아 부채널$^{\textsf{side-channel}}$ 공격에 더 취약할 수 있습니다.
+</details>
