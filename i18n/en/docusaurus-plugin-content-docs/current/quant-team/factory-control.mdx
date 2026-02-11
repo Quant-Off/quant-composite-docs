@@ -1,53 +1,55 @@
+---
+id: factory-control
+---
+
 import Highlight from '@site/src/components/DocsDefault';
 
 # Factory Control
 
-Developers around the world mostly work in different local environments. The Quant team has established a few rules to minimize confusion when team members easily fetch their own sources or those of other developers, or register libraries in such environments.
+Most developers in the world work in their own different local environments. The Quant team has established a few rules to minimize confusion when team members import their own source code or other developers' source code, or register libraries, even in such environments.
 
-We call this method Factory Control. Simply put, it is a system designed so that <Highlight>you don't need to get confused about the location of the source you developed yourself or how to manage versions, without needing separate memos</Highlight>.
+This method is called **Factory Control**. Simply put, it is a system designed so that <Highlight>you don't have to take separate notes on where the source code you developed is located or how to manage versions</Highlight>.
 
-When one developer's project needs to be accessed by another developer within the team, reusable resources or fully shareable directories are always set to the <Highlight>"public" directory located at the project root</Highlight>. Therefore, you just need to create a "public" directory in your project directory. Slight adjustments are possible depending on the language or framework, and this is not a strict rule. The Quant team prioritizes the freedom of team members.
+When one developer's project needs to be accessed by another developer within the team, reusable resources or fully shareable directories are <Highlight>always located in the "public" directory at the project root</Highlight>. Therefore, you just need to create a "public" directory in the project root. Slight adjustments are possible depending on the language or framework, and this is not a strict rule. The Quant team prioritizes team member freedom above all else.
 
-To utilize this "public" directory, set the `<project_name>_PUBLIC_DIR` environment variable. For example, if the project name is "Entanglement", set the `ENTANGLEMENT_PUBLIC_DIR` environment variable to the path of the corresponding "public" directory.
+To utilize this "public" directory, set the `<PROJECT_NAME>_PUBLIC_DIR` environment variable. For example, if the project name is "Entanglement", you would set the `ENTANGLEMENT_PUBLIC_DIR` environment variable to the path of that "public" directory.
 
-## 자바 프로젝트에서
-
-자바 프로젝트는 크게 두 가지의 빌드 도구를 사용할 수 있습니다. 저희는 주로 그레이들(Gradle) 빌드 도구를 사용하지만 개발자 입맛에 따라 메이븐(Maven)을 사용할 수도 있습니다. 각각의 도구에 대해 중앙
-관리 방법을 알려드리겠습니다.
-
-:::info
-설명에는 멀티 모듈 프로젝트인 경우도 포함했으니 걱정 안 하셔도 됍니다!
+:::note
+We have agreed to always write environment variables in uppercase snake case.
 :::
 
-그 전에, 한 가지 공통적인 사실이 있습니다. 저희는 로컬 환경에서 빌드 파일에 사용되는 전역 변수(Global Variable)는 개별 프로젝트의 (루트) 빌드 파일이 아닌 시스템의 최고 상위 위치에서 설정하기로
-했습니다. 빌드 파일이 설치된 사용자 홈 디렉토리입니다. 맥(macOS) 운영 체제의 경우 (그리고 그레이들의 경우) `~/.gradle/gradle.properties` 경로가 될 수 있습니다.
+## In Java Projects
 
-### 그레이들 프로젝트
+Java projects can largely use two build tools. We mainly use the Gradle build tool, but Maven can also be used depending on the developer's preference. I will explain the central management method for each tool.
 
-그레이들 사용자 홈 디렉토리에 `gradle.properties` 파일을 추가하고, 이 곳에서 전역 변수를 관리할 수 있습니다. 당신의 프로젝트를 메이븐 공개 저장소(Maven Central Repository)나
-퀀트 공동 저장소(Quant Shared)에 배포(게시)하고자 하는 경우, 필요한 유저 ID, 패스워드, 식별자 번호 등의 사항을 저장해 둘 수 있습니다. 다음과 같이요!
+The explanation also includes cases for multi-module projects, so don't worry.
 
-```properties
-# ~/.gradle/gradle.properties
-# 메이븐 공개 저장소와 배포 설정
-mavenCentralUsername=mavenUsername
+Before that, there is one common fact. We decided to <Highlight>set global variables used in build files in the local environment at the highest level of the system, not in the individual project's (root) build file</Highlight>. This is the user home directory where the build file is installed. In the case of the macOS operating system (and for Gradle), it can be the `~/.gradle/gradle.properties` path.
+
+### Gradle Projects
+
+You can add a `gradle.properties` file to the Gradle user home directory and manage global variables there. If you want to deploy (publish) your project to the Maven Central Repository or the Quant Shared Repository, you can store necessary information such as user ID, password, and identifier number as follows.
+
+```properties title="~/.gradle/gradle.properties"
+# Maven Central Repository and deployment settings
+mavenCentralUsername=mavenUsername
 mavenCentralPassword=mavenPassword
 SONATYPE_HOST=CENTRAL_PORTAL
 # ...
-# 배포에 필요한 서명 정보
+# Signing information required for deployment
 signing.keyId=pubKey
 signing.password=keyPassword
 signing.secretKeyRingFile=path/to/secretFile.gpg
-# 퀀트 설정
+# Quant settings
 quantPublicDir=/path/to/quant/public
-# 개별 프로젝트에서, 공통 그룹명 관리
+# Common group name management in individual projects
 commonGroupId=space.qu4nt
 ```
 
-이 전역 변수를 개별 프로젝트에서 호출해 다음과 같이 사용하세요(Kotlin DSL 기준).
+Call these global variables in individual projects and use them as follows (based on Kotlin DSL).
 
-```kotlin
-// ...플러그인, 전체 프로젝트 및 변수 설정
+```kotlin title="Root module's build.gradle.kts"
+// ...Plugins, overall project and variable settings
 
 val quantPublicDir: String by project
 val commonGroupId: String by project
@@ -58,7 +60,7 @@ version = "1.0.0"
 sourceSets {
     main {
         resources {
-            srcDirs += File("${quantPublicDir}/my-project")
+            srcDirs += File("${quantPublicDir}/my-project")
         }
     }
     test {
@@ -68,14 +70,13 @@ sourceSets {
     }
 }
 
-// ... 이 외의 저장소, 의존성 설정
+// ... Other repository and dependency settings
 ```
 
-짠! 이렇게 되면 당신의 프로젝트는 효율적으로 공통 (테스트) 리소스를 참조하고, 그룹을 관리할 수 있습니다! 프로젝트를 배포하고자 하는 경우에도 용이합니다. 만약 당신의 프로젝트가 멀티 모듈 프로젝트라면, 하위
-모듈에 대해 `sourceSets` 설정을 수행하시면 됩니다.
+Ta-da! Now your project can efficiently reference common (test) resources and manage groups! It is also easy when you want to deploy the project. If your project is a multi-module project, you can perform `sourceSets` settings for sub-modules.
 
-```kotlin
-// 루트 모듈 build.gradle.kts
+```kotlin title="Root module's build.gradle.kts"
+// Root module build.gradle.kts
 
 val quantPublicDir: String by project
 val commonGroupId: String by project
@@ -102,8 +103,119 @@ subprojects {
             }
         }
     }
-    // ... 하위 모듈 의존성 등 설정
+    // ... Sub-module dependencies, etc. settings
 }
 ```
 
-이렇게 하면 참조하고자 하는 리소스를 하위 모듈에서도 호출할 수 있습니다. 만약 이러한 프로젝트가 넘쳐난다고 해도 유연하게 대응이 가능하고, 편리한 유지 보수가 가능합니다.
+This way, you can call the resources you want to reference in sub-modules as well. Even if your projects are overflowing, you can respond flexibly and maintain them conveniently.
+
+### Maven Projects
+
+Maven projects can configure builds through the `pom.xml` file. Maven manages global settings through the `settings.xml` file located in the `.m2` folder of the user home directory. If the file does not exist, you must create a new one. This file is used to define authentication information or global properties, similar to Gradle's `gradle.properties`.
+
+First, you need to define and activate a profile for the Quant team's environment settings in the `~/.m2/settings.xml` file as follows.
+
+```xml title=".m2/settings.xml located in user home"
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                              https://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+    <servers>
+        <server>
+            <id>ossrh</id>
+            <username>mavenUsername</username>
+            <password>mavenPassword</password>
+        </server>
+        </servers>
+
+    <profiles>
+        <profile>
+            <id>quant-environment</id>
+            <properties>
+                <quant.public.dir>/path/to/quant/public</quant.public.dir>
+                <common.group.id>space.qu4nt</common.group.id>
+            </properties>
+        </profile>
+    </profiles>
+
+    <activeProfiles>
+        <activeProfile>quant-environment</activeProfile>
+    </activeProfiles>
+</settings>
+
+```
+
+Now you can use the `quant.public.dir` and `common.group.id` variables globally. Let's call them in the individual project's `pom.xml` to add resources.
+
+Since Maven basically recognizes only `src/main/resources` as a resource directory, <Highlight>you must explicitly modify the `<resources>` section within the `<build>` tag to include external paths in resources</Highlight>.
+
+```xml title="pom.xml at project root"
+<project xmlns="http://maven.apache.org/POM/4.0.0" ...>
+    <groupId>${common.group.id}</groupId>
+    <artifactId>my-project</artifactId>
+    <version>1.0.0</version>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>${quant.public.dir}/my-project</directory>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
+
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+            <testResource>
+                <directory>${quant.public.dir}/my-project-test</directory>
+            </testResource>
+        </testResources>
+    </build>
+</project>
+
+```
+
+If your project has a **Multi-module** structure, you only need to perform this setting once in the parent `pom.xml` (Parent POM). Sub-modules inherit the parent's settings, so all sub-modules automatically reference the common resource directory.
+
+```xml title="Parent project's pom.xml"
+<project ...>
+    <groupId>${common.group.id}</groupId>
+    <artifactId>entanglement-parent</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>entanglement-core</module>
+        <module>entanglement-api</module>
+    </modules>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>${quant.public.dir}/my-project</directory>
+            </resource>
+        </resources>
+    </build>
+</project>
+
+```
+
+:::tip
+Maven's inheritance structure is very powerful. If a specific sub-module does not need common resources, you can override the inherited settings by redefining `<resources>` in that module's `pom.xml`.
+:::
+
+## Developer Pipeline Application
+
+<Highlight>The Quant team is preparing a Quant pipeline application called `Garden` to allow individual team members to more flexibly perform tasks such as freely publishing their projects and requesting feedback or modifications from other team members.</Highlight> This application is only available to Quant team members, but it may be changed to public later. Basically, it is closed so that it cannot be accessed from the outside, so gentle measures are possible when mistakes are made, and it will also be used mainly in the development of post-quantum encryption communication lines.
+
+`Garden` is still in the planning stage, so it seems it will take quite some time from production to team member deployment and public release, but <Highlight>it will be developed in an instant once large-scale projects such as [EntanglementLib](/docs/projects/entanglementlib/) or [Blue-Bridge](/docs/projects/blue-bridge/) are completed.</Highlight> That's because EntanglementLib took less than two months to be released on GitHub as a one-person development.
+
+First of all, I will organize this content separately under [this category](/docs/quant-team/garden) so that you can easily and quickly check if there are any changes at any time.

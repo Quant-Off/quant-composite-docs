@@ -1,0 +1,65 @@
+---
+id: index
+---
+
+import Highlight from '@site/src/components/DocsDefault';
+
+# EntanglementLib
+
+EntanglementLib is Quant's high-security library. It **bridges [Rust-based native code](https://github.com/Quant-Off/entlib-native) via the [FFM (Foreign Function & Memory) API](https://openjdk.org/jeps/454)**, introducing Rust's [ownership concept](https://doc.rust-kr.org/ch04-01-what-is-ownership.html) and [RAII (Resource Acquisition Is Initialization) pattern](https://doc.rust-lang.org/rust-by-example/scope/raii.html) to <Highlight>completely resolve the non-deterministic erasure problem of the Garbage Collector (GC)</Highlight>. It is a unique library that reduces native function call overhead to **3-7ns (nanoseconds)** or less for extreme performance.
+
+It integrates <Highlight>Post-Quantum Cryptography (PQC) and classical algorithms to counter threats in the quantum computing era</Highlight> as its core, performing all operations safely in native code to provide perfect security. PQC algorithms are based on NIST's FIPS standardized algorithms, and it comprehensively supports existing classical encryption algorithms (AES, RSA, etc.) to provide a hybrid security environment.
+
+EntanglementLib consists of <Highlight>three main elements: Sensitive Data Container, Native Operations, and Secure Communication</Highlight>. Its main purpose is to allow developers to easily and safely utilize secure and efficient encryption tools, and it is designed based on Java to enable efficient migration in large-scale enterprises.
+
+:::info
+Benchmarks are performed via JMH (Java Microbenchmark Harness), and you can check the details of the benchmarking results [here](https://github.com/Quant-Off/entanglementlib/blob/master/NATIVE_BENCHMARK.md).
+:::
+
+## Key Features and Supported Algorithms
+
+The main features of EntanglementLib can be broadly categorized into **Advanced Memory Security**, **Strong Encryption Algorithms**, **Native Performance Optimization**, and **Communication & Utilities**.
+
+### Advanced Memory Security: Anti-Data Remanence
+
+The most unique feature is that it overcomes the memory management limitations of the Java language (data remanence and relocation due to GC).
+
+Sensitive data can be stored in `Off-Heap` (native memory) rather than `Java Heap` to isolate it from the influence of GC (memory relocation, etc.). This is called a <Highlight>Sensitive Data Container</Highlight> and has the following systematic lifecycle.
+
+![a](sdc-lifecycle.png)
+
+Also, regarding perfect data erasure, <Highlight>when the data's lifespan ends, it calls the `entlib-native` native library written in Rust to physically overwrite the memory with '0's to erase the data</Highlight>. This ensures that the erasure code is not omitted by compiler optimization and prevents sensitive information from being exposed even during heap dumps or memory analysis.
+
+To facilitate the use of native memory in Java, quite active memory area (Arena) allocation may be required. To this end, it detects the execution environment such as `Netty` or `Spring Boot` and automatically allocates the optimal memory area suitable for the thread model.
+
+### Support for Latest PQC and Classical Encryption
+
+It supports both the latest PQC algorithms complying with NIST standards and verified classical algorithms. All encryption operations are performed natively to ensure both performance and security.
+
+- PQC Encryption
+    - Key Encapsulation Mechanism (KEM): Supports [`ML-KEM` (FIPS 203)](https://csrc.nist.gov/pubs/fips/203/final) and also provides the [`X25519MLKEM768` algorithm](https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#:~:text=4588-,X25519MLKEM768,-Y), a hybrid method combined with `X25519`, to ensure transitional security.
+    - Digital Signature (DS): Supports [`ML-DSA` (FIPS 204)](https://csrc.nist.gov/pubs/fips/204/final) and [`SLH-DSA` (FIPS 205)](https://csrc.nist.gov/pubs/fips/205/final).
+- Classical Encryption
+    - Supports `AES`, `ARIA` (block ciphers) and `ChaCha20-Poly1305` (AEAD stream cipher), and provides various operation modes (`GCM`, `CCM`, `CBC`, etc.).
+- Strategy Pattern
+    - It has a structure that allows algorithms to be flexibly replaced or registered and used through logic designed with the strategy pattern.
+
+### Native Performance Optimization and Architecture
+
+It interacts with the Rust native library with high performance using Java's latest feature, the FFM API.
+
+Major algorithms <Highlight>maximize parallel processing by utilizing the SIMD (Single Instruction, Multiple Data) instruction set</Highlight>, and instead of standard exceptions, specific custom exception classes such as `EntLibSecureException` and `EntLibCryptoException` are used to provide a clear security context and support systematic error handling.
+
+### Secure Communication
+
+Secure communication is one of the three core elements provided by EntanglementLib, and it is <Highlight>the backbone of the infrastructure that guarantees reliable connections between participants beyond simple data transmission</Highlight>.
+
+This module provides **a session management system that strictly controls all states from session creation to termination**, and <Highlight>powerful `TLS` server construction functions that fundamentally block eavesdropping and tampering</Highlight> by complying with the latest standards. Developers can use this feature to <Highlight>easily secure a secure communication pipeline at the level of military and financial systems</Highlight> without having to directly implement complex network security logic, and when combined with the other three elements, it guarantees seamless security not only for data storage and processing but also for the moment it moves.
+
+### Development Utilities
+
+In addition to the encryption core, it provides various modules for secure system development.
+
+- **Chunk Processor** and **I/O** tools for processing large amounts of data
+- **Buffer tools** for safely handling passwords and sensitive strings
+- Various tools for **development convenience** such as `BouncyCastle` utility wrappers, hashing, async, etc.

@@ -1,0 +1,68 @@
+---
+id: entlib-native
+---
+
+import Highlight from '@site/src/components/DocsDefault';
+
+# 네이티브 연산
+
+얽힘 라이브러리의 보안 연산은 <Highlight>[`entlib-native`](https://github.com/Quant-Off/entlib-native) 라는 Rust 기반의 네이티브 라이브러리에서 수행</Highlight>됩니다.
+
+이 네이티브 브릿지 모듈은 Java의 [Linker API(Project Panama)](https://openjdk.org/projects/panama/)를 활용하여, 기존 JNI 방식의 불안정함과 오버헤드를 극복하고 <Highlight>Java와 Rust가 메모리 주소를 직접 공유</Highlight>함으로써 데이터 복사 없는 고성능 연산을 구현했습니다.
+
+가장 핵심적인 기능은 <Highlight>컴파일러 최적화 방지형 보안 소거</Highlight>입니다. Rust의 소유권 개념과 `zeroize` 크레이트를 사용하여, 메모리 해제 시 컴파일러가 최적화를 이유로 데이터 소거를 건너뛰는 것을 방지하고 물리적으로 데이터를 0으로 덮어쓰도록 강제합니다. 이를 통해 잔류 데이터(Data Remanence)를 통한 정보 유출을 원천적으로 차단합니다.
+
+또한, <Highlight>키 마스킹 및 얽힘 로직</Highlight>을 통해 보안을 강화했습니다. 메모리 내부에서 암호화 키를 있는 그대로 저장하지 않고 임의의 난수 마스크와 `XOR` 연산하여 저장함으로써, 공격자가 메모리 덤프를 탈취하더라도 마스크 없이는 원본 키를 복구할 수 없도록 설계되었습니다.
+
+이 모듈은 <Highlight>양자-내성 암호의 네이티브 가속</Highlight>을 담당합니다. SIMD(Single Instruction Multiple Data) 명령어를 활용하여 `ML-DSA`, `ML-KEM`, `X25519`와 같은 최신 암호화 알고리즘을 고속으로 처리하며, `BouncyCastle`과 같은 외부 Java 라이브러리에 대한 의존성을 최소화하여 시스템의 경량화와 독립성을 확보했습니다.
+
+## 기술
+
+`entlib-native`와 얽힘 라이브러리간의 상호 작용은 단순한 함수 호출이 아닌, 메모리 모델을 공유하고 보안 컨텍스트를 동기화하는 고도로 최적화된 메커니즘을 따릅니다. 이 과정은 크게 <Highlight>FFI 아키텍처, 메모리 공유 모델, 보안 연산 파이프라인</Highlight>으로 나눌 수 있습니다.
+
+### FFI 아키텍처
+
+얽힘 라이브러리는 기존의 JNI(Java Native Interface)가 가진 **오버헤드와 복잡성**을 제거하기 위해 Java 22부터 정식 도입된 FFM API(Foreign Function & Memory API)를 기반으로 브릿징을 구현했습니다.
+
+* **링킹(linking):** `NativeLinkerManager`는 운영체제에 맞는 네이티브 라이브러리(`.so`, `.dll`, `.dylib`)를 로드하고, `Linker.nativeLinker()`를 통해 심볼(함수 주소)을 조회합니다. 이 과정에서 <Highlight>C ABI(Application Binary Interface) 규약을 따르는 다운콜(downcall) 핸들을 생성하여 Java가 네이티브 함수를 마치 일반 메소드처럼 호출</Highlight>할 수 있게 합니다.
+* **심볼 바인딩:** Java 측에서는 `java.lang.invoke.MethodHandle.MethodHandle`을 사용하여 <Highlight>네이티브 함수의 시그니처(인자 타입, 반환 타입)를 정의</Highlight>합니다. 예를 들어, 보안 소거 함수는 메모리 주소(`ADDRESS`)와 길이(`JAVA_LONG`)를 인자로 받도록 바인딩됩니다.
+
+### 제로-카피 메모리 모델
+
+이 브릿징의 핵심은 <Highlight>데이터 복사 없는 직접 참조</Highlight>입니다. Java 힙(heap)과 네이티브 힙 사이의 불필요한 [마샬링(marshalling)](https://www.google.com/search?q=%EB%A7%88%EC%83%AC%EB%A7%81) 비용을 제거하여 $T_{\text{copy}} \approx 0$ 을 달성했습니다.
+
+`SensitiveDataContainer`는 Java 힙이 아닌 네이티브 메모리 영역(Off-Heap)에 데이터를 할당합니다. 이 주소는 `java.lang.foreign.MemorySegment` 객체로 관리되며, 이 세그먼트의 베이스 주소(포인터)가 Rust로 직접 전달됩니다.
+
+Rust 측에서는 전달받은 원시 포인터(`*mut u8`)와 길이(`usize`)를 `unsafe` 블록 내에서 `std::slice::from_raw_parts_mut`를 통해 Rust의 슬라이스(`&mut [u8]`)로 변환합니다. 이로써 <Highlight>Rust는 Java가 할당한 메모리 영역을 자신의 소유인 것처럼 제어</Highlight>할 수 있게 됩니다.
+
+### 보안 소거 및 생명주기 제어
+
+데이터의 생명주기는 Java의 `Arena` 스코프와 Rust의 `zeroize` 로직이 결합되어 관리됩니다.
+
+1. **Java:** `SensitiveDataContainer#close()`가 호출되면, 먼저 `bindings` 리스트 필드에 묶인 하위 컨테이너들을 정리합니다.
+2. **Bridge:** `entanglement_secure_wipe` 네이티브 함수를 호출하여 메모리 세그먼트의 주소를 넘깁니다.
+3. **Rust:** `zeroize` 크레이트를 사용하여 <Highlight>해당 메모리 영역을 물리적으로 0으로 덮어씁니다. 이때 컴파일러 최적화(dead code elimination)를 방지하는 `volatile` 쓰기가 수행되어, 메모리 덤프 공격에 대한 내성(anti-data remanence)을 확보</Highlight>합니다.
+4. **Panic Safety:** Rust 실행 중 패닉(panic)이 발생하면 JVM 전체가 붕괴될 위험이 있으므로, Rust 측 엔트리 포인트는 `panic::catch_unwind`로 감싸져 있어 예외 상황을 안전하게 격리합니다.
+
+### 암호화 연산 파이프라인
+
+암호화 요청 시 동작 흐름은 다음과 같습니다.
+
+1. **전략 패턴 알고리즘 호출:** 사용자가 `AESStrategy` 등의 Java 메소드를 호출합니다.
+2. **포인터 전달:** Java는 입력 데이터, 출력 버퍼, 키, `IV`의 `MemorySegment` 주소를 네이티브로 전달합니다.
+3. **SIMD 가속 연산:** Rust는 전달받은 포인터를 통해 데이터에 접근하고, AVX2, NEON과 같은 SIMD 명령어를 활용하여 병렬 연산을 수행합니다.
+4. **직접 쓰기:** 연산 결과(암호문 등)는 별도의 반환 과정 없이 Java가 미리 할당해 둔 출력 버퍼 포인터 위치에 직접 기록됩니다.
+
+:::info
+현재 주요 PQC 알고리즘을 `libcrux` 크레이트를 사용하여 구현한 상태입니다.
+:::
+
+## 직접 구현된 알고리즘의 검증
+
+`entlib-native` 라이브러리는 최신 FIPS 표준화 내용에 따른 주요 PQC 알고리즘을 직접 구현하고, <Highlight>NIST ACVP(Automated Cryptographic Validation Protocol) 검증과  엄격하며 복합적인 사설 검증 등의 주요 검증 작업을 통과하는 것을 1차 목표로 결정</Highlight>했고, 이 목표가 이루어지면 최적화 및 안정화, 추가 보안 검증, 테스트 프로덕션 도입 등 알고리즘을 완전화 하기 위해 추가적인 작업을 수행해나갈 예정입니다.
+
+<Highlight>현재 무상태 해시 기반 전자 서명 알고리즘(Stateless Hash-based Digital Signature Algorithm, SLH-DSA)의 키 생성(keygen) 로직의 경우 NIST ACVP 검증을 통과</Highlight>했으며, 나머지 로직도 일관된 형식으로 검증될 예정입니다.
+
+:::note
+이에 관해서 [다른 문서](https://github.com/Quant-Off/entlib-native/blob/master/NIST-ACVP.md)에 자세히 정리하고 있습니다.
+:::

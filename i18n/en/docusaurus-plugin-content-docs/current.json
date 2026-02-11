@@ -1,10 +1,34 @@
 {
   "version.label": {
     "message": "Next",
-    "description": "현재 버전 라벨"
+    "description": "The label for version current"
   },
-  "sidebar.mySidebar.category.projects": {
-    "message": "Projects",
-    "description": "프로젝트 카테고리 라벨"
+  "sidebar.mySidebar.doc.팀 및 이 문서에 대해": {
+    "message": "About Team & Composite Docs",
+    "description": "The label for doc index in sidebar mySidebar"
+  },
+  "sidebar.mySidebar.category.퀀트 프로젝트": {
+    "message": "Quant Projects",
+    "description": "The label for category 퀀트 프로젝트 in sidebar mySidebar"
+  },
+  "sidebar.mySidebar.category.얽힘 라이브러리": {
+    "message": "EntanglementLib",
+    "description": "The label for category 얽힘 라이브러리 in sidebar mySidebar"
+  },
+  "sidebar.mySidebar.category.블루 브릿지": {
+    "message": "Blue-Bridge",
+    "description": "The label for category 블루 브릿지 in sidebar mySidebar"
+  },
+  "sidebar.mySidebar.category.퀀트 개발자": {
+    "message": "Quant Developers",
+    "description": "The label for category 퀀트 개발자 in sidebar mySidebar"
+  },
+  "sidebar.mySidebar.category.양자정보과학": {
+    "message": "Quantum Information Science",
+    "description": "The label for category 양자정보과학 in sidebar mySidebar"
+  },
+  "sidebar.mySidebar.category.기본 개념": {
+    "message": "Basic Concepts",
+    "description": "The label for category 기본 개념 in sidebar mySidebar"
   }
 }

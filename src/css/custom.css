@@ -13,6 +13,10 @@
 
     --ifm-color-text: #222222;
     --ifm-color-text-highlight: #D8D1C6BC;
+    --ifm-color-info-text: #222222;
+    --ifm-color-text-info-highlight: rgba(189, 210, 214, 0.74);
+    --ifm-color-warn-text: #222222;
+    --ifm-color-text-warn-highlight: rgba(225, 196, 140, 0.74);
 
     --ifm-code-font-size: 95%;
     --docusaurus-highlighted-code-line-bg: rgb(0, 0,0, .1);
@@ -30,6 +34,10 @@
 
     --ifm-color-text: #f4ede5;
     --ifm-color-text-highlight: #615B54BC;
+    --ifm-color-info-text: #e5f0f4;
+    --ifm-color-text-info-highlight: rgba(126, 160, 186, 0.74);
+    --ifm-color-warn-text: #f4eee5;
+    --ifm-color-text-warn-highlight: rgba(159, 135, 103, 0.74);
 
     --ifm-code-font-size: 95%;
     --docusaurus-highlighted-code-line-bg: rgba(92, 83, 75, 0.1);

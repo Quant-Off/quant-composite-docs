@@ -16,12 +16,12 @@ const sidebars: SidebarsConfig = {
     mySidebar: [
         {
             type: 'doc',
-            id: 'index', // ID
-            label: '소개', // 사이드바에 표시 이름
+            id: 'index',
+            label: '팀 및 이 문서에 대해',
         },
         {
             type: 'category',
-            label: '프로젝트', // 사이드바에 표시 카테고리
+            label: '퀀트 프로젝트',
             link: {
                 type: 'doc',
                 id: 'projects/index'
@@ -35,21 +35,33 @@ const sidebars: SidebarsConfig = {
                         id: 'projects/entanglementlib/index'
                     },
                     items: [
-                        'projects/entanglementlib/pqc-algorithms'
+                        'projects/entanglementlib/sensitive-data-container',
+                        'projects/entanglementlib/entlib-native',
+                        'projects/entanglementlib/secure-tls-server'
                     ],
+                },
+                {
+                    type: 'category',
+                    label: '블루 브릿지',
+                    link: {
+                        type: 'doc',
+                        id: 'projects/blue-bridge/index'
+                    },
+                    items: [ ],
                 }
             ],
         },
         {
             type: 'category',
-            label: '퀀트 개발자 기초',
+            label: '퀀트 개발자',
             link: {
                 type: 'doc',
                 id: 'quant-team/index'
             },
             items: [
                 'quant-team/factory-control',
-                'quant-team/secure'
+                'quant-team/secure',
+                'quant-team/garden'
             ],
         },
         {
@@ -60,8 +72,17 @@ const sidebars: SidebarsConfig = {
                 id: 'quantum-information/index'
             },
             items: [
-                // 'quantum-information/factory-control',
-                // 'quantum-information/secure'
+                {
+                    type: 'category',
+                    label: '기본 개념',
+                    link: {
+                        type: 'doc',
+                        id: 'quantum-information/basic/index'
+                    },
+                    items: [
+
+                    ]
+                }
             ],
         },
     ],

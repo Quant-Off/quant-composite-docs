@@ -1,9 +1,123 @@
 ---
-title: 보안
+id: secure
+sidebar_label: Secure
 ---
 
-퀀트 팀은 보안 문제를 매우 심층적이고 민감하게 다룹니다. 사용자의 활동은 외부 당사자뿐만 아니라 공급자 측에서도 인지되지 않아야 합니다. 퀀트의 모든 프로젝트에서 내부적으로 생성되거나 사용자 입력으로 할당되는 민감 데이터는 자동으로 영소거(zeroing) 처리되어야 하며, 파일 생성 시에도 해당 구현 내용이 잠재적 보안 취약점에 노출될 가능성을 철저히 분석하고 예방 조치를 적용해야 합니다. 민감 데이터를 활용해야 할 경우, 복사본을 전달하여 원본의 강제 파기를 방지하면서도 데이터를 안전하게 관리하세요. 이는 기술적으로 다소 복잡한 구현을 요구하지만, 그만큼 막중한 책임감을 인식해야만 퀀트의 핵심 목표인 보안에 한 걸음 더 다가갈 수 있습니다. 이 문서를 포함하여 보안 관련 문서를 면밀히 검토하고 의무를 준수하시기 바랍니다.
+import Highlight, {HlInfo, HlWarn} from '@site/src/components/DocsDefault';
 
-## 프로젝트의 보안은 어떻게?
+# Security
 
-앞서 언급했다시피 사용자 입력으로 할당되는 민감 데이터는 자동으로 영소거 처리되어야 하는 것과 데이터의 복사본을 전달하는 것이 중요합니다. 프로젝트에서 특정 기능 구현 시, 그리고 그 구현에서 사용자의 데이터를 처리해야 하는 경우 전역(또는 지역) 변수에 그 데이터를 저장하지 마세요.
+In fact, this document can be considered the most core of all documents.
+
+The Quant team treats security issues very deeply and sensitively. <Highlight>User activity must not be perceived by the provider side as well as external parties.</Highlight> **Sensitive data generated internally or assigned by user input in all Quant projects must be automatically wiped**, and even when creating files, the implementation details must be thoroughly analyzed for potential security vulnerabilities and preventive measures must be applied.
+
+When sensitive data must be utilized, <Highlight>pass a copy to prevent forced destruction of the original while managing the data safely.</Highlight> This requires technically somewhat complex implementation, but only by recognizing such heavy responsibility can we take a step closer to Quant's core goal, security. Please review security-related documents, including this one, closely and comply with your obligations.
+
+:::note
+This document is written to inform Quant team members how to maintain and manage client or their own secrets within their projects or within projects (i.e., applications).
+:::
+
+## To Improve Project Security
+
+As mentioned earlier, <Highlight>it is important that sensitive data assigned by user input be automatically zero-wiped and that a copy of the data be passed</Highlight>. When implementing specific features in a project, and if that implementation requires processing user data, do not store that data in global (or local) variables.
+
+Technically, we all know that data is stored in the `Stack` or `Heap`. And if it is stored in this memory area, and if you are a security professional, you know how stupid the Garbage Collector is.
+
+<details>
+    <summary>Why the Garbage Collector (GC) is called stupid</summary>
+
+    First of all, information about GC is [organized in 'Deep Blue', a past Java lecture document of the Quant team.](https://github.com/Quant-Off/deepblue-java/blob/master/%EC%9E%90%EB%B0%94(Java)/%EA%B0%95%EC%9D%98/%EB%A9%94%EB%AA%A8%EB%A6%AC/%EA%B0%80%EB%B9%84%EC%A7%80%20%EC%BB%AC%EB%A0%89%ED%84%B0(GC).md) As stated in Deep Blue, GC plays a key role in Java's memory management system, <HlInfo>literally a memory cleaner.</HlInfo>
+    > It helps the program run smoothly by automatically finding and reclaiming objects that are no longer in use from memory, without the programmer having to manage memory deallocation directly.
+
+    It actually does a lot of useful work.
+
+    However, GC shows <HlInfo>laziness by not immediately releasing memory when an object is no longer referenced, but collecting it later.</HlInfo> During this process, sensitive data such as passwords, encryption keys, and personal information remain in memory for a considerable period, exposing them to risks such as heap dump attacks.
+
+    And <HlInfo>even if an object is removed from memory, the memory space may not be immediately wiped with `0`, so residual data may remain until reallocation</HlInfo>.
+</details>
+
+So what can be done 'to improve project security'? In fact, the safest way is to [use the Sensitive Data Container of EntanglementLib](/docs/projects/entanglementlib/sensitive-data-container), but we will focus on enabling developers to build high-security workspaces themselves.
+
+In accordance with the provided document style, we write a specific guide to technically strengthen the security of the project.
+
+## Beware of Immutable Objects
+
+In Java, `String` is a representative immutable object. While this is advantageous for ensuring thread-safety and optimizing performance in general application development, **it is the worst enemy from a security perspective**.
+
+If you create a password or encryption key with a string literal or `String` object, that data is stored in the String Constant Pool. Even if the developer directly assigns `null` to the variable, the actual data remains in the heap memory in plaintext form until the GC runs to clean up and overwrite that memory area.
+
+Therefore, sensitive data must use **mutable primitive arrays**. <Highlight>Use `char[]` or `byte[]` instead of `String` for passwords or key data.</Highlight>
+
+```java title="Password Declaration: Good and Bad Examples"
+// [Bad] Strings are immutable, so they cannot be immediately erased from memory
+String password = "super_secret_password";
+
+// [Good] Arrays are mutable, so data can be overwritten after use
+char[] password = {'s', 'u', 'p', 'e', 'r', '_', 's', 'e', 'c', 'r', 'e', 't'};
+
+```
+
+## Explicit Erasure
+
+If you used an array, you must overwrite that memory space with meaningless data (usually `0`) immediately after use. This is called 'zeroize'. The Quant team strongly recommends <Highlight>performing this process in the `finally` block of all sensitive data processing logic</Highlight>.
+
+```java showLineNumbers=true
+import java.util.Arrays;
+
+public void handleSensitiveData(char[] rawPassword) {
+    try {
+        // do cryptographic operations...
+        // Perform encryption logic using sensitive data
+    } finally {
+        // highlight-start
+        // Immediate memory erasure after use
+        if (rawPassword != null) {
+            Arrays.fill(rawPassword, '\0');
+        }
+        // highlight-end
+    }
+}
+
+```
+
+:::warning
+Simply filling an array with `0` may result in the code being removed by compiler optimization or the JIT (Just-In-Time) compiler. EntanglementLib uses native-level memory fences and erasure logic via the FFM API to prevent this, but <HlWarn>in a pure Java environment, you must force the compiler not to ignore the code by overwriting with `SecureRandom` or using loops</HlWarn>.
+:::
+
+## Get Out of the Heap
+
+The **FFM (Foreign Function & Memory) API**, officially introduced in Java 22, is the core of the high-performance and high-security system pursued by the Quant team. Heap memory is under the management of the GC, making it difficult to predict the movement and lifecycle of data. On the other hand, using the FFM API allows direct allocation and control of native memory outside the heap (Off-heap).
+
+<Highlight>Allocate sensitive data to native memory via `java.lang.foreign.Arena` instead of the heap, and manage it with `java.lang.foreign.MemorySegment`.</Highlight> This method is easy to combine with system calls that prevent memory pages from being swapped at the OS level, and allows memory to be released exactly when desired without GC interference.
+
+```java title="Using FFM API" showLineNumbers=true
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueChangedLayout;
+
+public void processKeyOffHeap(byte[] keyData) {
+    // confined arena: When the try-with-resources block ends,
+    // memory is deterministically released
+    try (Arena arena = Arena.ofConfined()) {
+        // Native memory allocation (outside heap)
+        MemorySegment segment = arena.allocate(keyData.length);
+
+        // Copy data
+        // copy data from heap to off-heap
+        for (int i = 0; i < keyData.length; i++) {
+            segment.set(ValueChangedLayout.JAVA_BYTE, i, keyData[i]);
+        }
+
+        // ... perform secure operations ...
+
+        // Manual erasure (overwrite before release)
+        for (long i = 0; i < segment.byteSize(); i++) {
+            segment.set(ValueChangedLayout.JAVA_BYTE, i, (byte) 0);
+        }
+    }
+    // Arena closes and memory is immediately returned to the OS
+}
+
+```
+
+This pattern can be cumbersome for developers. But remember. <Highlight>Security and convenience are in a trade-off relationship.</Highlight> As developers of the Quant team, we pursue perfect security at the expense of convenience.

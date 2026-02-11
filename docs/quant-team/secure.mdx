@@ -1,9 +1,122 @@
 ---
-title: 보안
+id: secure
 ---
 
-퀀트 팀은 보안 문제를 매우 심층적이고 민감하게 다룹니다. 사용자의 활동은 외부 당사자뿐만 아니라 공급자 측에서도 인지되지 않아야 합니다. 퀀트의 모든 프로젝트에서 내부적으로 생성되거나 사용자 입력으로 할당되는 민감 데이터는 자동으로 영소거(zeroing) 처리되어야 하며, 파일 생성 시에도 해당 구현 내용이 잠재적 보안 취약점에 노출될 가능성을 철저히 분석하고 예방 조치를 적용해야 합니다. 민감 데이터를 활용해야 할 경우, 복사본을 전달하여 원본의 강제 파기를 방지하면서도 데이터를 안전하게 관리하세요. 이는 기술적으로 다소 복잡한 구현을 요구하지만, 그만큼 막중한 책임감을 인식해야만 퀀트의 핵심 목표인 보안에 한 걸음 더 다가갈 수 있습니다. 이 문서를 포함하여 보안 관련 문서를 면밀히 검토하고 의무를 준수하시기 바랍니다.
+import Highlight, {HlInfo, HlWarn} from '@site/src/components/DocsDefault';
 
-## 프로젝트의 보안은 어떻게?
+# 보안
 
-앞서 언급했다시피 사용자 입력으로 할당되는 민감 데이터는 자동으로 영소거 처리되어야 하는 것과 데이터의 복사본을 전달하는 것이 중요합니다. 프로젝트에서 특정 기능 구현 시, 그리고 그 구현에서 사용자의 데이터를 처리해야 하는 경우 전역(또는 지역) 변수에 그 데이터를 저장하지 마세요.
+사실 이 문서는 모든 문서를 통틀어 가장 핵심적이라고 할 수 있습니다.
+
+퀀트 팀은 보안 문제를 매우 심층적이고 민감하게 다룹니다. <Highlight>사용자의 활동은 외부 당사자뿐만 아니라 공급자 측에서도 인지되지 않아야 합니다.</Highlight> 퀀트의 모든 프로젝트에서 내부적으로 생성되거나 사용자 입력으로 할당되는 **민감 데이터는 자동으로 소거(wipe) 처리**되어야 하며, 파일 생성 시에도 해당 구현 내용이 잠재적 보안 취약점에 노출될 가능성을 철저히 분석하고 예방 조치를 적용해야 합니다.
+
+민감 데이터를 활용해야 할 경우, <Highlight>복사본을 전달하여 원본의 강제 파기를 방지하면서도 데이터를 안전하게 관리하세요.</Highlight> 이는 기술적으로 다소 복잡한 구현을 요구하지만, 그만큼 막중한 책임감을 인식해야만 퀀트의 핵심 목표인 보안에 한 걸음 더 다가갈 수 있습니다. 이 문서를 포함하여 보안 관련 문서를 면밀히 검토하고 의무를 준수하시기 바랍니다.
+
+:::note
+이 문서는 퀀트 팀원이 자신의 프로젝트나 프로젝트 내에서(즉, 애플리케이션에서) 클라이언트나 자신의 비밀을 어떻게 유지 및 관리해야 하는지 알려주기 위해 작성됩니다.
+:::
+
+## 프로젝트의 보안성을 향상시키기 위해
+
+앞서 언급했다시피 <Highlight>사용자 입력으로 할당되는 민감 데이터는 자동으로 영소거 처리되어야 하는 것과 데이터의 복사본을 전달하는 것이 중요</Highlight>합니다. 프로젝트에서 특정 기능 구현 시, 그리고 그 구현에서 사용자의 데이터를 처리해야 하는 경우 전역(또는 지역) 변수에 그 데이터를 저장하지 마세요.
+
+기술적으로 데이터는 `Stack` 또는 `Heap`에 저장된다는 것을 우리 모두가 알고 있습니다. 그리고 이 메모리 구역에 저장된다면, 그리고 자신이 보안 종사자라면 가비지 컬렉터가 얼마나 멍청한지 알고 있을 겁니다.
+
+<details>
+    <summary>가비지 컬렉터(GC)를 멍청하다고 하는 이유</summary>
+
+    우선, GC에 대한 내용은 [퀀트 팀 과거 Java 강의 문서인 '딥 블루'에 정리해뒀어요.](https://github.com/Quant-Off/deepblue-java/blob/master/%EC%9E%90%EB%B0%94(Java)/%EA%B0%95%EC%9D%98/%EB%A9%94%EB%AA%A8%EB%A6%AC/%EA%B0%80%EB%B9%84%EC%A7%80%20%EC%BB%AC%EB%A0%89%ED%84%B0(GC).md) 팁 블루에 나와있다시피, GC는 자바의 메모리 관리 시스템에서 핵심 역할을 수행하는, <HlInfo>말 그대로 메모리 청소부입니다.</HlInfo>
+    > 프로그래머가 직접 메모리 해제를 관리할 필요 없이, 더 이상 사용되지 않는 객체들을 자동으로 찾아내어 메모리에서 회수함으로써, 프로그램이 원활하게 동작하도록 돕습니다.
+
+    실제로 유용한 일을 많이 하긴 합니다.
+
+    하지만 GC는 객체가 더 이상 참조되지 않을 때 <HlInfo>즉시 메모리를 해제하지 않고 나중에 수집하는 귀차니즘을 보입니다.</HlInfo> 이 과정에서 비밀번호, 암호화 키, 개인정보 등 민감 데이터가 메모리에 상당 기간 남아 있어 힙 덤프(heap dump) 공격 등에 노출될 위험이 있습니다.
+
+    그리고 <HlInfo>메모리에서 객체를 제거해도 해당 메모리 공간을 즉시 `0`으로 소거(wipe)하지 않을 수 있어, 재할당 전까지 잔존 데이터가 남아</HlInfo>있을 수 있습니다.
+</details>
+
+그렇다면 '프로젝트의 보안성을 향상시키기 위해' 무엇을 할 수 있을까요? 사실 가장 안전한 방법은 [얽힘 라이브러리의 민감 데이터 컨테이너를 사용](/docs/projects/entanglementlib/sensitive-data-container)하는 방법입니다만, 개발자 스스로 직접 고보안 워크스페이스를 구축할 수 있도록 하는 데 초점을 맞추겠습니다.
+
+제공해주신 문서 스타일에 맞춰, 프로젝트의 보안성을 기술적으로 강화하기 위한 구체적인 가이드를 작성합니다.
+
+## 불변 객체를 경계하라
+
+자바에서 `String`은 대표적인 불변 객체입니다. 이는 일반적인 애플리케이션 개발에서는 스레드 안전성(thread-safety)을 보장하고 성능을 최적화하는 데 유리하지만, **보안 관점에서는 최악의 적**입니다.
+
+문자열 리터럴(literal)이나 `String` 객체로 비밀번호나 암호화 키를 생성하면, 해당 데이터는 문자열 상수 풀(String Constant Pool)에 저장됩니다. 개발자가 변수에 직접 `null`을 할당하더라도, 실제 데이터는 GC가 실행되어 해당 메모리 영역을 정리하고 덮어쓸 때까지 힙 메모리에 평문(plaintext) 형태로 잔존합니다.
+
+따라서 민감한 데이터는 반드시 **가변 가능한(mutable) 기본형 배열**을 사용해야 합니다. <Highlight>비밀번호나 키 데이터는 `String` 대신 `char[]` 또는 `byte[]`를 사용하세요.</Highlight>
+
+```java title="비밀번호 선언: 좋고 나쁨의 예"
+// [나쁨] 문자열은 불변이므로 메모리에서 즉시 지울 수 없음
+String password = "super_secret_password";
+
+// [좋음] 배열은 가변이므로 사용 후 데이터를 덮어쓸 수 있음
+char[] password = {'s', 'u', 'p', 'e', 'r', '_', 's', 'e', 'c', 'r', 'e', 't'};
+
+```
+
+## 명시적 소거
+
+배열을 사용했다면, 사용이 끝난 즉시 해당 메모리 공간을 무의미한 데이터(주로 `0`)로 덮어씌워야 합니다. 이를 '소거(zeroize)'라고 부릅니다. 퀀트 팀은 이 과정을 <Highlight>모든 민감 데이터 처리 로직의 `finally` 블록에서 수행할 것</Highlight>을 강력히 권장합니다.
+
+```java showLineNumbers=true
+import java.util.Arrays;
+
+public void handleSensitiveData(char[] rawPassword) {
+    try {
+        // do cryptographic operations...
+        // 민감 데이터를 이용한 암호화 로직 수행
+    } finally {
+        // highlight-start
+        // 사용 후 즉시 메모리 소거
+        if (rawPassword != null) {
+            Arrays.fill(rawPassword, '\0');
+        }
+        // highlight-end
+    }
+}
+
+```
+
+:::warning
+단순히 배열에 `0`을 채우는 것만으로는 컴파일러 최적화나 JIT(Just-In-Time) 컴파일러에 의해 코드가 제거될 가능성이 있습니다. 얽힘 라이브러리는 이를 방지하기 위해 FFM API를 통한 네이티브 레벨의 메모리 펜스(memory fence)와 소거 로직을 사용하지만, <HlWarn>순수 자바 환경에서는 `SecureRandom`을 덮어쓰거나 반복문을 통해 컴파일러가 코드를 무시하지 못하도록 강제</HlWarn>해야 합니다.
+:::
+
+## Heap을 벗어나라
+
+자바 22부터 정식 도입된 **FFM(Foreign Function & Memory) API**는 퀀트 팀이 추구하는 고성능$\cdot$고보안 시스템의 핵심입니다. 힙 메모리는 GC의 관리 하에 있어 데이터의 이동과 생명주기를 예측하기 어렵습니다. 반면, FFM API를 사용하면 힙 외부(Off-heap)의 네이티브 메모리를 직접 할당하고 제어할 수 있습니다.
+
+<Highlight>민감 데이터는 힙이 아닌 `java.lang.foreign.Arena`를 통해 네이티브 메모리에 할당하고, `java.lang.foreign.MemorySegment`로 관리하세요.</Highlight> 이 방식은 OS 레벨에서 메모리 페이지가 스왑(swap)되는 것을 방지하는 시스템 콜과 결합하기 용이하며, GC의 간섭 없이 원하는 시점에 정확히 메모리를 해제할 수 있습니다.
+
+```java title="FFM API 사용" showLineNumbers=true
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueChangedLayout;
+
+public void processKeyOffHeap(byte[] keyData) {
+    // confined arena: try-with-resources 블록이 끝나면
+    // 결정론적으로 메모리가 해제됨
+    try (Arena arena = Arena.ofConfined()) {
+        // 네이티브 메모리 할당 (heap 외부)
+        MemorySegment segment = arena.allocate(keyData.length);
+
+        // 데이터 복사
+        // copy data from heap to off-heap
+        for (int i = 0; i < keyData.length; i++) {
+            segment.set(ValueChangedLayout.JAVA_BYTE, i, keyData[i]);
+        }
+
+        // ... perform secure operations ...
+
+        // 수동 소거 (해제 전 덮어쓰기)
+        for (long i = 0; i < segment.byteSize(); i++) {
+            segment.set(ValueChangedLayout.JAVA_BYTE, i, (byte) 0);
+        }
+    }
+    // arena가 닫히며 메모리가 즉시 OS에 반환
+}
+
+```
+
+이러한 패턴은 개발자에게 번거로움을 줄 수 있습니다. 하지만 기억하세요. <Highlight>보안과 편의성은 반비례 관계(trade-off)에 있습니다.</Highlight> 퀀트 팀의 개발자로서, 우리는 편의성을 희생하여 완벽한 보안을 추구합니다.

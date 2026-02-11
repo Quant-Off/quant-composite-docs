@@ -38,7 +38,15 @@ const config: Config = {
         locales: ['ko', 'en'],
         localeConfigs: {
             en: {
+                label: 'English',
+                direction: 'ltr',
+                htmlLang: 'en-US',
                 baseUrl: '/en/',
+            },
+            ko: {
+                label: '한국어',
+                direction: 'ltr',
+                htmlLang: 'ko-KR',
             }
         }
     },
@@ -121,10 +129,19 @@ const config: Config = {
         //     copyright: `Copyright © ${new Date().getFullYear()} Quant, Inc. Built with Docusaurus.`,
         // },
         prism: {
-            theme: prismThemes.github,
-            darkTheme: prismThemes.dracula,
+            theme: prismThemes.duotoneLight,
+            darkTheme: prismThemes.gruvboxMaterialDark,
+            additionalLanguages: ['java', 'bash', 'properties', 'kotlin']
+        },
+        mermaid: {
+            theme: {light: 'forest', dark: 'dark'},
         },
     } satisfies Preset.ThemeConfig,
+
+    markdown: {
+        mermaid: true,
+    },
+    themes: ['@docusaurus/theme-mermaid'],
 };
 
 export default config;

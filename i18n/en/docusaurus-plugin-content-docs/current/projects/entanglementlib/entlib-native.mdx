@@ -1,0 +1,69 @@
+---
+id: entlib-native
+sidebar_label: Native Process
+---
+
+import Highlight from '@site/src/components/DocsDefault';
+
+# Native Operations
+
+Secure operations in EntanglementLib are <Highlight>performed in a Rust-based native library called [`entlib-native`](https://github.com/Quant-Off/entlib-native)</Highlight>.
+
+This native bridge module utilizes Java's [Linker API (Project Panama)](https://openjdk.org/projects/panama/) to overcome the instability and overhead of the existing JNI method, and implements high-performance operations without data copying by <Highlight>directly sharing memory addresses between Java and Rust</Highlight>.
+
+The most core feature is <Highlight>compiler optimization-resistant secure erasure</Highlight>. Using Rust's ownership concept and the `zeroize` crate, it prevents the compiler from skipping data erasure for optimization reasons when releasing memory, and forces data to be physically overwritten with zeros. This fundamentally blocks information leakage through Data Remanence.
+
+In addition, security has been strengthened through <Highlight>key masking and entanglement logic</Highlight>. By not storing the encryption key as is in memory, but storing it after `XOR` operation with a random mask, it is designed so that even if an attacker steals a memory dump, the original key cannot be recovered without the mask.
+
+This module is responsible for <Highlight>native acceleration of Post-Quantum Cryptography</Highlight>. It processes the latest encryption algorithms such as `ML-DSA`, `ML-KEM`, and `X25519` at high speed using SIMD (Single Instruction Multiple Data) instructions, and minimizes dependency on external Java libraries such as `BouncyCastle` to secure system lightweightness and independence.
+
+## Technology
+
+The interaction between `entlib-native` and EntanglementLib follows a highly optimized mechanism that shares memory models and synchronizes security contexts, rather than simple function calls. This process can be largely divided into <Highlight>FFI Architecture, Memory Sharing Model, and Secure Operation Pipeline</Highlight>.
+
+### FFI Architecture
+
+EntanglementLib implemented bridging based on the FFM API (Foreign Function & Memory API), which was officially introduced in Java 22, to eliminate the **overhead and complexity** of the existing JNI (Java Native Interface).
+
+* **Linking:** `NativeLinkerManager` loads the native library (`.so`, `.dll`, `.dylib`) suitable for the operating system and looks up symbols (function addresses) through `Linker.nativeLinker()`. In this process, <Highlight>it creates a downcall handle that follows the C ABI (Application Binary Interface) convention, allowing Java to call native functions as if they were normal methods</Highlight>.
+* **Symbol Binding:** On the Java side, `java.lang.invoke.MethodHandle` is used to <Highlight>define the signature (argument type, return type) of the native function</Highlight>. For example, the secure erasure function is bound to receive a memory address (`ADDRESS`) and length (`JAVA_LONG`) as arguments.
+
+### Zero-Copy Memory Model
+
+The core of this bridging is <Highlight>direct reference without data copying</Highlight>. By eliminating unnecessary [marshalling](https://www.google.com/search?q=marshalling) costs between the Java heap and the native heap, $T_{\text{copy}} \approx 0$ was achieved.
+
+`SensitiveDataContainer` allocates data to the native memory area (Off-Heap), not the Java heap. This address is managed as a `java.lang.foreign.MemorySegment` object, and the base address (pointer) of this segment is passed directly to Rust.
+
+On the Rust side, the received raw pointer (`*mut u8`) and length (`usize`) are converted to a Rust slice (`&mut [u8]`) via `std::slice::from_raw_parts_mut` within an `unsafe` block. This allows <Highlight>Rust to control the memory area allocated by Java as if it were its own</Highlight>.
+
+### Secure Erasure and Lifecycle Control
+
+The lifecycle of data is managed by combining Java's `Arena` scope and Rust's `zeroize` logic.
+
+1. **Java:** When `SensitiveDataContainer#close()` is called, it first cleans up child containers bound to the `bindings` list field.
+2. **Bridge:** Calls the `entanglement_secure_wipe` native function to pass the address of the memory segment.
+3. **Rust:** Uses the `zeroize` crate to <Highlight>physically overwrite the memory area with zeros. At this time, a `volatile` write is performed to prevent compiler optimization (dead code elimination), securing resistance to memory dump attacks (anti-data remanence)</Highlight>.
+4. **Panic Safety:** Since a panic during Rust execution risks collapsing the entire JVM, the entry point on the Rust side is wrapped with `panic::catch_unwind` to safely isolate exception situations.
+
+### Encryption Operation Pipeline
+
+The operation flow upon encryption request is as follows:
+
+1. **Strategy Pattern Algorithm Call:** The user calls a Java method such as `AESStrategy`.
+2. **Pointer Passing:** Java passes the `MemorySegment` addresses of input data, output buffer, key, and `IV` to native code.
+3. **SIMD Accelerated Operation:** Rust accesses data through the passed pointer and performs parallel operations utilizing SIMD instructions such as AVX2 and NEON.
+4. **Direct Write:** The operation result (ciphertext, etc.) is directly written to the output buffer pointer location pre-allocated by Java without a separate return process.
+
+:::info
+Currently, major PQC algorithms are implemented using the `libcrux` crate.
+:::
+
+## Verification of Directly Implemented Algorithms
+
+The `entlib-native` library directly implements major PQC algorithms according to the latest FIPS standardization contents, and <Highlight>has decided as its primary goal to pass major verification tasks such as NIST ACVP (Automated Cryptographic Validation Protocol) verification and strict and complex private verification</Highlight>. Once this goal is achieved, additional work will be performed to perfect the algorithms, such as optimization and stabilization, additional security verification, and introduction to test production.
+
+<Highlight>Currently, in the case of the key generation (keygen) logic of the Stateless Hash-based Digital Signature Algorithm (SLH-DSA), it has passed NIST ACVP verification</Highlight>, and the remaining logic is also scheduled to be verified in a consistent format.
+
+:::note
+Details regarding this are organized in [another document](https://github.com/Quant-Off/entlib-native/blob/master/NIST-ACVP.md).
+:::

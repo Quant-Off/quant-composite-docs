@@ -1,36 +1,39 @@
+---
+id: factory-control
+---
+
 import Highlight from '@site/src/components/DocsDefault';
 
 # 중앙 관리
 
 세상의 개발자들은 각자 서로 다른 로컬 환경에서 작업하는 경우가 대부분입니다. 퀀트 팀은 이러한 환경 속에서도 팀원들이 자신의 소스나 다른 개발자의 소스를 쉽게 가져오거나 라이브러리를 등록할 때 혼란을 최소화하기 위해 몇 가지 규칙을 정했습니다.
 
-이 방식을 중앙 관리(Factory Control)라고 부릅니다. 간단히 설명하자면, <Highlight>당신이 직접 개발한 소스의 위치를 헷갈리거나 버전 관리를 어떻게 할지 별도로 메모할 필요가 없도록</Highlight> 설계된 시스템입니다.
+이 방식을 중앙 관리(factory control)라고 부릅니다. 간단히 설명하자면, <Highlight>당신이 직접 개발한 소스의 위치를 헷갈리거나 버전 관리를 어떻게 할지 별도로 메모할 필요가 없도록</Highlight> 설계된 시스템입니다.
 
-팀 내에서 한 개발자의 프로젝트를 다른 개발자가 접근해야 할 때, 재사용 가능한 자원이나 완전 공유 가능한 디렉토리는 <Highlight>항상 프로젝트 루트에 위치한 "public" 디렉토리</Highlight>로 정했습니다. 따라서 프로젝트 디렉토리에 "public" 디렉토리를 생성하면 됩니다. 언어나 프레임워크에 따라 약간의 조정이 가능하며, 이는 엄격한 규칙이 아닙니다. 퀀트 팀은 팀원의 자유도를 최우선으로 고려합니다.
+팀 내에서 한 개발자의 프로젝트를 다른 개발자가 접근해야 할 때, 재사용 가능한 자원이나 완전 공유 가능한 디렉토리는 <Highlight>항상 프로젝트 루트에 위치한 "public" 디렉토리</Highlight>로 정했습니다. 따라서 프로젝트 루트에 "public" 디렉토리를 생성하면 됩니다. 언어나 프레임워크에 따라 약간의 조정이 가능하며, 이는 엄격한 규칙이 아닙니다. 퀀트 팀은 팀원의 자유도를 최우선으로 고려합니다.
 
 이 "public" 디렉토리를 활용하려면 `<프로젝트명>_PUBLIC_DIR` 환경 변수를 설정합니다. 예를 들어, 프로젝트 이름이 "Entanglement"라면 `ENTANGLEMENT_PUBLIC_DIR` 환경 변수를 해당 "public" 디렉토리의 경로로 지정하면 됩니다.
 
-## 자바 프로젝트에서
-
-자바 프로젝트는 크게 두 가지의 빌드 도구를 사용할 수 있습니다. 저희는 주로 그레이들(Gradle) 빌드 도구를 사용하지만 개발자 입맛에 따라 메이븐(Maven)을 사용할 수도 있습니다. 각각의 도구에 대해 중앙
-관리 방법을 알려드리겠습니다.
-
-:::info
-설명에는 멀티 모듈 프로젝트인 경우도 포함했으니 걱정 안 하셔도 됍니다!
+:::note
+환경 변수는 항상 대문자 스네이크 케이스(snakecase)로 표기하기로 약속했습니다.
 :::
 
-그 전에, 한 가지 공통적인 사실이 있습니다. 저희는 로컬 환경에서 빌드 파일에 사용되는 전역 변수(Global Variable)는 개별 프로젝트의 (루트) 빌드 파일이 아닌 시스템의 최고 상위 위치에서 설정하기로
-했습니다. 빌드 파일이 설치된 사용자 홈 디렉토리입니다. 맥(macOS) 운영 체제의 경우 (그리고 그레이들의 경우) `~/.gradle/gradle.properties` 경로가 될 수 있습니다.
+## 자바 프로젝트에서
+
+자바 프로젝트는 크게 두 가지의 빌드 도구를 사용할 수 있습니다. 저희는 주로 그레이들(Gradle) 빌드 도구를 사용하지만 개발자 입맛에 따라 메이븐(Maven)을 사용할 수도 있습니다. 각각의 도구에 대해 중앙 관리 방법을 알려드리겠습니다.
+
+설명에는 멀티 모듈 프로젝트인 경우도 포함했으니 걱정 안 하셔도 됩니다.
+
+그 전에, 한 가지 공통적인 사실이 있습니다. 저희는 <Highlight>로컬 환경에서 빌드 파일에 사용되는 전역 변수(global variable)는 개별 프로젝트의 (루트) 빌드 파일이 아닌 시스템의 최고 상위 위치에서 설정</Highlight>하기로 했습니다. 빌드 파일이 설치된 사용자 홈 디렉토리입니다. 맥(macOS) 운영 체제의 경우 (그리고 그레이들의 경우) `~/.gradle/gradle.properties` 경로가 될 수 있습니다.
 
 ### 그레이들 프로젝트
 
 그레이들 사용자 홈 디렉토리에 `gradle.properties` 파일을 추가하고, 이 곳에서 전역 변수를 관리할 수 있습니다. 당신의 프로젝트를 메이븐 공개 저장소(Maven Central Repository)나
-퀀트 공동 저장소(Quant Shared)에 배포(게시)하고자 하는 경우, 필요한 유저 ID, 패스워드, 식별자 번호 등의 사항을 저장해 둘 수 있습니다. 다음과 같이요!
+퀀트 공동 저장소(Quant Shared)에 배포(게시)하고자 하는 경우, 다음과 같이 필요한 유저 ID, 패스워드, 식별자 번호 등의 사항을 저장해 둘 수 있습니다.
 
-```properties
-# ~/.gradle/gradle.properties
+```properties title="~/.gradle/gradle.properties"
 # 메이븐 공개 저장소와 배포 설정
-mavenCentralUsername=mavenUsername
+mavenCentralUsername=mavenUsername
 mavenCentralPassword=mavenPassword
 SONATYPE_HOST=CENTRAL_PORTAL
 # ...
@@ -46,7 +49,7 @@ commonGroupId=space.qu4nt
 
 이 전역 변수를 개별 프로젝트에서 호출해 다음과 같이 사용하세요(Kotlin DSL 기준).
 
-```kotlin
+```kotlin title="루트 모듈의 build.gradle.kts"
 // ...플러그인, 전체 프로젝트 및 변수 설정
 
 val quantPublicDir: String by project
@@ -58,7 +61,7 @@ version = "1.0.0"
 sourceSets {
     main {
         resources {
-            srcDirs += File("${quantPublicDir}/my-project")
+            srcDirs += File("${quantPublicDir}/my-project")
         }
     }
     test {
@@ -71,10 +74,9 @@ sourceSets {
 // ... 이 외의 저장소, 의존성 설정
 ```
 
-짠! 이렇게 되면 당신의 프로젝트는 효율적으로 공통 (테스트) 리소스를 참조하고, 그룹을 관리할 수 있습니다! 프로젝트를 배포하고자 하는 경우에도 용이합니다. 만약 당신의 프로젝트가 멀티 모듈 프로젝트라면, 하위
-모듈에 대해 `sourceSets` 설정을 수행하시면 됩니다.
+짠! 이렇게 되면 당신의 프로젝트는 효율적으로 공통 (테스트) 리소스를 참조하고, 그룹을 관리할 수 있습니다! 프로젝트를 배포하고자 하는 경우에도 용이합니다. 만약 당신의 프로젝트가 멀티 모듈 프로젝트라면, 하위 모듈에 대해 `sourceSets` 설정을 수행해줄 수 있습니다.
 
-```kotlin
+```kotlin title="루트 모듈의 build.gradle.kts"
 // 루트 모듈 build.gradle.kts
 
 val quantPublicDir: String by project
@@ -106,4 +108,115 @@ subprojects {
 }
 ```
 
-이렇게 하면 참조하고자 하는 리소스를 하위 모듈에서도 호출할 수 있습니다. 만약 이러한 프로젝트가 넘쳐난다고 해도 유연하게 대응이 가능하고, 편리한 유지 보수가 가능합니다.
+이렇게 하면 참조하고자 하는 리소스를 하위 모듈에서도 호출할 수 있습니다. 만약 자신의 프로젝트가 넘쳐난다고 해도 유연하게 대응이 가능하고, 편리한 유지 보수가 가능합니다.
+
+### 메이븐 프로젝트
+
+메이븐 프로젝트는 `pom.xml` 파일을 통해 빌드를 구성할 수 있죠. 메이븐은 사용자 홈 디렉토리의 `.m2` 폴더 내에 위치한 `settings.xml` 파일을 통해 전역 설정을 관리합니다. 만약 해당 파일이 없다면 새로 생성해야 합니다. 이 파일은 그레이들의 `gradle.properties`와 유사하게 인증 정보나 전역 프로퍼티를 정의하는 데 사용됩니다.
+
+우선, `~/.m2/settings.xml` 파일에 다음과 같이 퀀트 팀의 환경 설정을 위한 프로파일(profile)을 정의하고 활성화해야 합니다.
+
+```xml title="사용자 홈에 위치한 .m2/settings.xml"
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                              https://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+    <servers>
+        <server>
+            <id>ossrh</id>
+            <username>mavenUsername</username>
+            <password>mavenPassword</password>
+        </server>
+        </servers>
+
+    <profiles>
+        <profile>
+            <id>quant-environment</id>
+            <properties>
+                <quant.public.dir>/path/to/quant/public</quant.public.dir>
+                <common.group.id>space.qu4nt</common.group.id>
+            </properties>
+        </profile>
+    </profiles>
+
+    <activeProfiles>
+        <activeProfile>quant-environment</activeProfile>
+    </activeProfiles>
+</settings>
+
+```
+
+이제 전역적으로 `quant.public.dir`와 `common.group.id` 변수를 사용할 수 있게 되었습니다. 이를 개별 프로젝트의 `pom.xml`에서 호출하여 리소스를 추가해 봅시다.
+
+메이븐은 기본적으로 `src/main/resources`만을 리소스 디렉토리로 인식하므로, <Highlight>외부 경로를 리소스에 포함하려면 `<build>` 태그 내의 `<resources>` 섹션을 명시적으로 수정</Highlight>해야 합니다.
+
+```xml title="프로젝트 루트의 pom.xml"
+<project xmlns="http://maven.apache.org/POM/4.0.0" ...>
+    <groupId>${common.group.id}</groupId>
+    <artifactId>my-project</artifactId>
+    <version>1.0.0</version>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>${quant.public.dir}/my-project</directory>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
+
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+            <testResource>
+                <directory>${quant.public.dir}/my-project-test</directory>
+            </testResource>
+        </testResources>
+    </build>
+</project>
+
+```
+
+만약 당신의 프로젝트가 **멀티 모듈(Multi-module)** 구조라면, 부모 `pom.xml` (Parent POM)에서 이 설정을 한 번만 수행하면 됩니다. 하위 모듈은 부모의 설정을 상속받으므로, 모든 서브 모듈이 자동으로 공용 리소스 디렉토리를 참조하게 됩니다.
+
+```xml title="부모 프로젝트의 pom.xml"
+<project ...>
+    <groupId>${common.group.id}</groupId>
+    <artifactId>entanglement-parent</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>entanglement-core</module>
+        <module>entanglement-api</module>
+    </modules>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>${quant.public.dir}/my-project</directory>
+            </resource>
+        </resources>
+    </build>
+</project>
+
+```
+
+:::tip
+메이븐은 상속 구조가 매우 강력합니다. 만약 특정 하위 모듈에서만 공용 리소스가 필요하지 않다면, 해당 모듈의 `pom.xml`에서 `<resources>`를 재정의하여 상속된 설정을 덮어쓸 수 있습니다.
+:::
+
+## 개발자 파이프라인 애플리케이션
+
+<Highlight>퀀트 팀은 개별 팀원이 자유롭게 자신의 프로젝트를 게시하고, 다른 팀원에게 피드백 또는 수정을 요청하는 등의 작업을 좀 더 유연하게 수행하기 위헤 `Garden` 이라는 퀀트 파이프라인 애플리케이션을 준비 중</Highlight>에 있습니다. 이 애플리케이션은 퀀트 팀원만 사용할 수 있지만, 이후에 전체 공개로 변경될 수 있어요. 기본적으로 외부로부터 접근할 수 없이 폐쇄적이라 실수했을 때 부드러운 조치가 가능한 점과 양자-내성 암호화 통신 선로 개발에 있어서도 주력으로 사용될 예정이에요.
+
+`Garden`은 아직 기획 단계에 있어 제작부터 팀원 배포 및 전체 공개까진 시간이 꽤 소요될 것 같지만, <Highlight>[얽힘 라이브러리](/docs/projects/entanglementlib/)나 [블루-브릿지](/docs/projects/blue-bridge/)와 같은 대규모 프로젝트가 완료되면 순식간에 개발될겁니다.</Highlight> 그도 그럴게, 얽힘 라이브러리는 1인 개발로 깃허브에 공개하는 데 까지 2개월도 안 걸렸으니까요.
+
+우선, 변경 사항이 있으면 언제든 쉽고 빠르게 확인할 수 있도록 이 내용은 [이 카테고리 하위에 따로](/docs/quant-team/garden) 정리해두겠습니다.
