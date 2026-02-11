@@ -1,0 +1,161 @@
+---
+id: index
+---
+
+import Highlight from '@site/src/components/DocsDefault';
+
+# 기본 개념
+
+양자정보과학, 나아가 양자역학을 이해하기 위해선 선형대수학의 벡터$^{\textsf{vector}}$, 행렬$^{\textsf{matrix}}$에 관한 지식과 이에 적용되는 연산$^{\textsf{operator}}$들에 대해 이해가 필요합니다. 예시로 이 문서의 양자 관련 모든 부분에서 힐베르트 공간$^{\textsf{Hilbert space}}$에 대한 상세한 정의를 포함하지 않아요. 복소수 집합을 $\mathbb{C}$로 표현합니다. <Highlight>이는 모두 힐베르트 공간의 양자역학적 표현</Highlight>이기 때문입니다. 실수는 $\mathbb{R}$ 공간에 존재하고, 복소수는 $\mathbb{C}$로 표현할게요.
+
+또한 우리는 양자역학의 불확정성 원리$^{\textsf{uncertainty principle}}$같은 기본적인 특성에 대해 논의하지 않을 겁니다. 이는 개별 원자가 어느 한 부분으로 이동한다고 할 때, 그 위치를 알면 운동량을 알 수 없고, 반대로 운동량을 알면 위치를 알 수 없는 신비로운 특성입니다.
+
+여러분이 고전계에서 이루어지는 정보 처리 방식에 태반을 알고 있다면 이해하기 쉬울거라 생각됩니다. 양자계$^{\textsf{quantum system}}$는 $0$과 $1$이라는 이진수가 중첩된 형태로 정보를 처리하며, 현대의 기술로 이를 읽어내려면 고전계$^{\textsf{classical system}}$ 방식으로 접근해야 해요. 따라서 우리가 논의하는 방향은 <Highlight>입력이 양자계이고, 출력이 고전계</Highlight>입니다.
+
+## 기초 확률론
+
+기초 확률론은 양자 컴퓨팅과 그 보안을 이해하는 데 있어 필수적입니다. 왜냐하면 양자 이론에서 측정 가능한 결과를 예측하는 데는 확률론이 무지막지하게 사용되기 때문입니다.
+
+어떤 사건 $x_i$에 대한 확률 값 $p_i$는 $0 \le p_i \le 1$을 만족해요. 이 범위 값의 양극단에 대한 의미는 간단합니다. <Highlight>불가능한 사건의 확률은 $0$이예요. 그리고 일어날 것이 분명한 사건의 확률은 $1$입니다.</Highlight> 다른 모든 사건의 확률 값은 이 범위 안에 속해요.
+
+어떤 사건의 확률은 간단히 말해 사건의 상대적 출현 빈도라고 할 수 있습니다. 총 $n$번의 사건이 있고 $j$번 사건이 $n_j$번 일어났다고 가정한다면 $\sum_{j=1}^\infty n_j = n$이 성립하고, $j$번째 사건이 발생할 확률은 다음과 같아요.
+
+$$
+p_j = \frac{n_j}{n}
+$$
+
+다시 한 번 강조하지만, 양자역학과 양자 컴퓨팅을 이해하기 위해서는 선형대수학이 필수적입니다. <Highlight>양자 상태, 연산, 측정 등 모든 핵심 개념은 선형대수학의 언어로 표현</Highlight>됩니다. 먼저 양자정보과학에 필요한 기본적인 개념들에 대해 알아봅시다.
+
+## 양자정보과학
+
+우리가 오늘날 사용하는 멋진 컴퓨터는 비트$^{\textsf{bit}}$라는 정보의 척도를 가지죠. 이 클로드 섀넌$^{\textsf{Claude Shannon}}$의 멋진 정의는 일관된 모든 것의 기반으로 동작합니다. 단순하게 비트는 마치 전등 스위치와 같아서 <Highlight>켜짐(1) 또는 꺼짐(0)</Highlight>이라는 두 가지 명확한 상태 중 하나만을 가집니다.
+
+컴퓨터 과학과 공학은 이 단순한 원칙을 바탕으로 눈부신 발전을 이루었지만, 현실의 모든 문제를 효율적으로 해결하진 못 합니다. 특히 신약 개발을 위한 분자 구조 시뮬레이션이나, 초거대 데이터 속에서 최적의 해를 찾는 문제는 <Highlight>현존하는 가장 빠른 슈퍼 컴퓨터로도 풀기 어려운 영역</Highlight>으로 남아있어요.
+
+양자정보과학$^{\textsf{quantum information science}}$은 바로 이 한계를 넘어서기 위해 등장한 새로운 패러다임입니다. 이 녀석은 컴퓨터 과학을 <Highlight>'미시 세계를 지배하는 양자역학의 원리'위에 다시 새우려는 시도</Highlight>예요. 단순히 더 빠른 부품을 만드는 것이 아니라, '정보를 처리하는 규칙' 자체를 바꾸는 근본적인 혁신이라고 할 수 있죠. 컴퓨터 공학적 관점에서 이는 양자 현상을 제어하는 새로운 하드웨어를 설계하고, <Highlight>그 위에서 동작할 '전례 럾는 알고리즘'을 개발하는 것을 목표로 하는 분야</Highlight>입니다.
+
+## 큐비트와 양자 상태
+
+우리는 이 시점에서 한 가지 질문을 던질 수 있어요. 고전적 정보를 표현할 때는 비트를 사용한다고 헀죠. 그렇다면 <Highlight>'양자정보의 척도는 무엇일까요?'</Highlight>
+
+<Highlight>영저정보는 양자 비트$^{\textsf{quantum bit}}$, 또는 줄여서 큐비트$^{\textsf{qubit}}$를 척도로 삼아요.</Highlight> 큐비트는 비트인 $0$과 $1$이 중첩$^{\textsf{superposition}}$된 상태로, 측정$^{\textsf{measurement}}$ 시 둘 중 하나의 상태로 확정(관측)됩니다. 아직은 이 부분에 대해 방대하게 설명하진 않을게요. 단순히 고전 비트, 즉 크비트$^{\textsf{cbit}}$는 다음과 같이 큐비트로 대응시킬 수 있어요.
+
+$$
+0 \rightarrow \ket{0}, \qquad 1 \rightarrow \ket{1}
+$$
+
+세로 막대기와 꺽쇠 괄호만 빼면 이 표현을 켓$^{\textsf{ket}}$ 이라고 표기할 수 있습니다. 이 표현은 폴 디랙$^{\textsf{Paul Dirac}}$이 제안한 브라-켓 표기법$^{\textsf{bra-ket notation}}$이고, 이름이 충분히 우습기 때문에 어느 학자는 큐비트, 벡터 또는 상태$^{\textsf{state}}$, 아니면 이 둘을 조합한 '상태벡터' 라고도 표현해요. 이 문서는 각 표현들을 번갈아가면서 사용하지만, 상황에 맞게 적절히 사용하니 이해하는 데 문제는 없을 겁니다.
+
+크비트가 큐비트로 대응된 결과는 <Highlight>계산 기저$^{\textsf{computational basis}}$를 가진 상태로, 양자정보이론에서 특정 상태의 확률을 결정하기 위해 사용</Highlight>됩니다. 직관적으로 상태 $\ket{0}$은 $0$이 발견된 것이고, 상태 $\ket{1}$은 $1$이 발견된 것이라고 할 수 있어요.
+
+### 중첩과 측정
+
+임의의 큐비트 $\ket{\psi}$가 중첩 상태라면, 다음과 같이 쓸 수 있습니다.
+
+$$
+\ket{\psi} = \alpha\ket{0} + \beta\ket{1}
+$$
+
+여기서 계수 $\alpha$와 계수 $\beta$는 각각 복소수$^{\textsf{complex}}$예요.
+
+큐비트는 $\ket{0}$과 $\ket{1}$의 중첩 상태에 있을 수 있지만, <Highlight>측정을 할 때는 중첩 상태를 확인할 수 없습니다.</Highlight> 상술했듯 큐비트를 측정하면 큐비트는 $\ket0$ 상태나 $\ket{1}$ 상태 둘 중 하나로 측정돼요.
+
+### 확률 진폭
+
+양자역학의 법칙에 따르면 <Highlight>각 계수 $\alpha$와 $\beta$는 절댓값 제곱하여 $\ket{0}$ 상태와 $\ket{1}$ 상태의 발견 확률을 구할 수 있습니다.</Highlight> 이를 확률 진폭$^{\textsf{probability amplitude}}$이라고 해요. 즉, $|\alpha|^2$는 $\ket{\psi}$가 $\ket{0}$ 상태에 있을 확률 확률 진폭(상태를 발견할 확률)이고, $|\beta|^2$는 $\ket{\psi}$가 $\ket{1}$ 상태에 있을 확률 진폭이예요. 이 개념에 대해서는 이후 측정에 대해 논의할 때 좀 더 자세히 알아볼게요.
+
+선형대수학적으로 큐비트를 벡터로 표현하여 계수 $\alpha$와 $\beta$를 스칼라$^{\textsf{scalar}}$라고 표현할 수 있어요.
+
+#### 정규화 조건
+
+<Highlight>확률 진폭의 합은 반드시 $1$</Highlight>이어야 하므로, 큐비트늬 곱 계수에는 따라야 할 제약이 있습니다. 계수의 제곱값이 측정 결과를 나타내기 떄문에 $\alpha, \beta$는 다음의 관계를 만족해야 합니다. 이는 기초 확률론에 의거해요.
+
+$$
+|\alpha|^2 + |\beta|^2 = 1
+$$
+
+이를 정규화 조건$^{\textsf{normalize rule}}$이라고 하며, 학계 전문적으론 단위 노름$^{\textsf{norm}}$ 제약조건이라고 하기도 합니다. 이 관계를 만족하는 큐비트는 정규화$^{\textsf{nomalized}}$된 큐비트라고 해요.
+
+### 큐비트의 벡터 표현
+
+앞서 언급한 브라-켓 표기법을 사용하여 $\ket{\psi}$과 같은 큐비트 상태를 만들었습니다. 이 상태는 선형대수학적으로 열벡터$^{\textsf{row vector}}$ 또는 2차원 힐베르트 공간 $\mathbb{C}^2$의 한 벡터임을 의미합니다. 위에 정의한 큐비트 $\ket{\psi}$를 다음과 같이 열벡터로 표현할 수 있어요.
+
+$$
+\ket{\psi} = \begin{bmatrix}\alpha \\ \beta\end{bmatrix}
+$$
+
+$\ket{0}$의 계수 $\alpha$는 첫째 줄에 쓰고 $\ket{1}$의 계수 $\beta$를 둘째 줄에 쓰면 열벡터 표기법이 됩니다. 이렇게 켓은 열벡터로 표현 가능함을 알았네요.
+
+좀 더 구체적으로 설명하자면 <Highlight>큐비트는 $\mathbb{C}^2$, 즉 2차원 힐베르트 공간에만 포함된다고 할 수 없어요.</Highlight> 복합계$^{\textsf{composite system}}$와 같이 여러 상태가 복합적으로 구성된 계를 가진 큐비트는 $\mathbb{C}^{2^n}$ 힐베르트 공간에 포함되어 있다고 말할 수 있습니다. 직관적으로 계가 복합적으로 얽히기 때문에 $n$차원임이 엄밀합니다. 복합계 개념을 통해 계산 기저가 $\mathbb{C}^2$ 공간, 즉 단일계$^{\textsf{single system}}$의 상태임을 이해할 수 있습니다.
+
+켓 표현을 열벡터로 표현하는 데에는 좀 더 자유로움을 보여드릴게요. <Highlight>$\mathbb{C}^n$의 원소들을 $\ket{a}, \ket{b}, \ket{c}$로 간단하게 표기할 수 있습니다. 이 벡터의 원소들을 적을 때는 $a_1, \ldots, a_n$와 같은 방식으로 숫자를 나열하는 $n$차원 열벡터로 간단히 표기</Highlight>할 수 있습니다.
+
+$$
+\ket{\alpha} = \begin{bmatrix}a_1 \\ a_2 \\ \vdots \\ a_n\end{bmatrix}
+$$
+
+이처럼 선형대수학적으로도 다양한 응용이 존재해요.
+
+#### 스칼라배
+
+상술했듯 벡터의 원소$^{\textsf{components 또는 elements}}$라고 하는 숫자(예로 들어, 벡터 $\ket{a}$의 원소 $a_i$)는 $\mathbb{C}$ 공간의 복소수입니다. 벡터에 대한 스칼라배$^{\textsf{scalar multiplication}}$ 계산 방법은 다음과 같아요.
+
+$$
+w\ket{a} = w \begin{bmatrix}a_1 \\ a_2 \\ \vdots \\ a_n\end{bmatrix} = \begin{bmatrix}wa_1 \\ wa_2 \\ \vdots \\ wa_n\end{bmatrix}
+$$
+
+#### 벡터 덧셈
+
+벡터 덧셈은 두 벡터의 원소 단위로 더하면 되고, 그 결과 새로운 벡터가 만들어집니다.
+
+$$
+\ket{a} + \ket{b} = \begin{bmatrix}a_1 \\ a_2 \\ \vdots \\ a_n\end{bmatrix} + \begin{bmatrix}b_1 \\ b_2 \\ \vdots \\ b_n\end{bmatrix} = \begin{bmatrix}a_1 + b_1 \\ a_2 + b_2 \\ \vdots \\ a_n + b_n\end{bmatrix}
+$$
+
+아주 직관적이네요!
+
+### 선형 결합
+
+[스칼라베](#스칼라배)에서 벡터간의 중요한 선형적 결합에 대해 다루었습니다. <Highlight>스칼라 $\alpha_i \in \mathbb{C}$에 대해, 벡터 $\ket{v_i} \in \mathbb{C}^n$이라고 했을 떄 다음과 같은 형태를 벡터의 선형 결합$^{\textsf{linear combination}}$</Highlight>이라고 합니다.
+
+$$
+\alpha_1\ket{v_1} + \alpha_2\ket{v_2} + \cdots + \alpha_n\ket{v_n} = \sum^n_{i = 1} \alpha_i\ket{v_i}
+$$
+
+### 벡터공간
+
+<Highlight>한 집합의 벡터들을 선형 결합하여 얻을 수 있는 모든 결과 벡터의 집합을 그 벡터 집합이 생성$^{\textsf{span}}$한다고 말합니다.</Highlight> 수식으로는 벡터 집합 $\{\ket{v_1}, \ldots, \ket{v_n}\}$에 대해, 다음과 같이 표현해요.
+
+$$
+\mathrm{span} \{\ket{v_1}, \ldots, \ket{v_n}\}, \left\{ \sum^n_{i = 1} \alpha_i\ket{v_i} \vert \alpha_i \in \mathbb{C} \right\}
+$$
+
+이 집합은 $\ket{v_1}, \ldots, \ket{v_n}$ 벡터들의 선형 결합으로 만들 수 있는 모든 벡터를 포함해요. <Highlight>모든 2차원 벡터는 $\alpha\ket{0} + \beta\ket{1}$ 형태로 표현 가능하여, $\mathrm{span}\{\ket{0}, \ket{1}\} = \mathbb{C}^2$가 됩니다.</Highlight> 즉, $\{\ket{v_i}\}$가 어떤 공간을 생성$^{\textsf{spanning}}$한다고 하면, 그 벡터들의 선형 결합만으로 해당 공간의 모든 벡터를 표현할 수 있음을 의미해요.
+
+직관적으로, 어떤 벡터 집합 $\ket{v_1}, \ket{v_2}, \ldots, \ket{v_n}$이 주어졌을 때 이 벡터들을 이용해 벡터공간에 속한 모든 벡터 $\ket{v}$를 표현할 수 있다면 이 집합 $\{\ket{v_i}\}$가 주어진 벡터공간을 생성하는 겁니다. 예를 들어 3차원 벡터공간 $\mathbb{C}^3$를 생각해봅시다. 다음과 같은 방식으로 이 3차원 공간의 모든 열벡터를 표현할 수 있습니다.
+
+$$
+\ket{u} = \begin{bmatrix}\alpha \\ \beta \\ \gamma\end{bmatrix}
+= \begin{bmatrix}\alpha \\ 0 \\ 0\end{bmatrix} + \begin{bmatrix}0 \\ \beta \\ 0\end{bmatrix} + \begin{bmatrix}0 \\ 0 \\ \gamma\end{bmatrix}
+= \alpha \begin{bmatrix}1 \\ 0 \\ 0\end{bmatrix} + \beta \begin{bmatrix}0 \\ 1 \\ 0\end{bmatrix} + \gamma \begin{bmatrix}0 \\ 0 \\ 1\end{bmatrix}
+$$
+
+따라서 다음과 같이 벡터 집합을 정의하면
+
+$$
+\ket{v_1} = \begin{bmatrix}1 \\ 0 \\ 0\end{bmatrix}, \quad \ket{v_2} =  \begin{bmatrix}0 \\ 1 \\ 0\end{bmatrix}, \quad \ket{v_3} = \begin{bmatrix}0 \\ 0 \\ 1\end{bmatrix}
+$$
+
+이렇게 $\mathbb{C}^3$ 공간을 생성할 수 있습니다! 따라서, $\mathbb{C}^2$ 공간을 생성하는 $\ket{\psi}$의 큐비트를 열벡터 표기로 바꾸고, 벡터 덧셈과 스칼라배를 적용하면 다음 식을 얻을 수 있어요.
+
+$$
+\ket{\psi} = \begin{bmatrix}\alpha \\ \beta\end{bmatrix}
+= \begin{bmatrix}\alpha \\ 0\end{bmatrix} + \begin{bmatrix}0 \\ \beta\end{bmatrix}
+= \alpha \begin{bmatrix}1 \\ 0\end{bmatrix} + \beta \begin{bmatrix}0 \\ 1\end{bmatrix}
+$$
+
+이를 통해 $\ket{0}, \ket{1}$ 벡터의 열벡터 표현이 다음과 같음을 알 수 있습니다.
+
+$$
+\ket{0} = \begin{bmatrix}1 \\ 0\end{bmatrix}, \qquad \ket{1} = \begin{bmatrix}0 \\ 1\end{bmatrix}
+$$
